@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  password         String
+  fullName         String
+  email            String?   @unique
+  emailVerified    DateTime?
+  phoneNumber      Int       @unique
+  profilePhoto     String?
+  dateOfBirth      DateTime?
+  registrationDate DateTime  @default(now())
+  lastLogin        DateTime?
+  address          Address[]
+
+  gender Gender
+  role   Role   @default(Citizen)
+
+  citizen       Citizen?
+  policeOfficer PoliceOfficer?
+  detective     Detective?
+  administrator Administrator?
+  userDocuments UserDocuments?
+}
+
+model UserDocuments {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  voterIdNumber        String?
+  voterIdPhoto         String?
+  aadharCardNumber     String?
+  aadharCardPhoto      String?
+  panCardNumber        String?
+  panCardPhoto         String?
+  passportNumber       String?
+  passportPhoto        String?
+  drivingLicenceNumber String?
+  drivingLicencePhoto  String?
+
+  isVerified Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id])
+}
+
+model Address {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  type          AddressType
+  country       String
+  state         String
+  city          String
+  postalCode    String
+  street        String?
+  houseNumber   String?
+  landmark      String?
+  policeStation PoliceStation?
+  user          User           @relation(fields: [userId], references: [id])
+}
+
+enum AddressType {
+  CurrentAddress
+  PermanentAddress
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+model Citizen {
+  userId                  String               @id @unique
+  user                    User                 @relation(fields: [userId], references: [id])
+  licenseApplications     LicenseApplication[]
+  complaints              Complaint[]
+  notificationPreferences String?
+}
+
+model PoliceOfficer {
+  userId            String            @id @unique
+  user              User              @relation(fields: [userId], references: [id])
+  badgeNumber       String            @unique
+  rank              String
+  assignedStationId String?
+  assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
+  department        Department
+  assignedCaseId    String?
+  assignedCases     CaseAssignment?   @relation(fields: [assignedCaseId], references: [id])
+  // caseHistory
+  transferHistory   TransferHistory[]
+  accessLevel       String
+}
+
+enum Department {
+  Traffic
+  Crime
+  CyberCrime
+  Narcotics
+  WemenSafety
+  SpecialInvestigation
+}
+
+model Detective {
+  userId            String           @id @unique
+  user              User             @relation(fields: [userId], references: [id])
+  investigationArea String?
+  // Current Posting
+  activeCases       CaseAssignment[]
+  specialization    String
+  caseHistory       CaseHistory[]
+}
+
+model Administrator {
+  userId String @id @unique
+  user   User   @relation(fields: [userId], references: [id])
+  // adminLevel           String
+  // systemSetup          String
+  // userManagement       String
+  // systemLogs           String
+  // databaseManagement   String
+  // customizableSettings String
+}
+
+model PoliceStation {
+  id            String          @id @default(cuid())
+  stationName   String
+  locationId    String?         @unique
+  location      Address?        @relation(fields: [locationId], references: [id])
+  // areaOfControl String
+  departments   String[]
+  officers      PoliceOfficer[]
+}
+
+model LicenseApplication {
+  id         String    @id @default(cuid())
+  citizenId  String
+  citizen    Citizen   @relation(fields: [citizenId], references: [userId])
+  type       String
+  status     String
+  appliedAt  DateTime  @default(now())
+  approvedAt DateTime?
+}
+
+model Complaint {
+  id            String    @id @default(cuid())
+  citizenId     String
+  citizen       Citizen   @relation(fields: [citizenId], references: [userId])
+  title         String
+  description   String
+  status        String
+  filedAt       DateTime  @default(now())
+  actionTakenAt DateTime?
+}
+
+model CaseAssignment {
+  id          String          @id @default(cuid())
+  caseId      String
+  officer     PoliceOfficer[]
+  detectiveId String?
+  detective   Detective?      @relation(fields: [detectiveId], references: [userId])
+  assignedAt  DateTime        @default(now())
+}
+
+
+// TODO: Address
+model TransferHistory {
+  id            String        @id @default(cuid())
+  officerId     String
+  officer       PoliceOfficer @relation(fields: [officerId], references: [userId])
+  fromStationId String
+  toStationId   String
+  transferredAt DateTime      @default(now())
+}
+
+model CaseHistory {
+  id          String    @id @default(cuid())
+  detectiveId String
+  detective   Detective @relation(fields: [detectiveId], references: [userId])
+  caseId      String
+  details     String
+  updatedAt   DateTime  @default(now())
+}
+
+// TODO: Police station pe history hoga cases ka
+
+enum Role {
+  Citizen
+  PoliceOfficer
+  Detective
+  Administrator
+}
