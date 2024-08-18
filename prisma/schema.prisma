@@ -97,8 +97,8 @@ model PoliceOfficer {
   assignedCaseId    String?
   assignedStationId String?
   rank              Rank?
+  department        Department[]
   assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
-  department        Department
   assignedCases     CaseAssignment?   @relation(fields: [assignedCaseId], references: [id])
   caseHistory       CaseHistory[]
   transferHistory   TransferHistory[]
@@ -191,17 +191,19 @@ model CaseAssignment {
   id          String          @id @default(cuid())
   caseId      String
   detectiveId String?
+  caseType    CaseType
   caseStatus  CaseStatus      @default(Pending)
   officer     PoliceOfficer[]
-  detective   Detective?      @relation(fields: [detectiveId], references: [userId])
-  assignedAt  DateTime        @default(now())
+  detective   Detective?    @relation(fields: [detectiveId], references: [userId])
+  assignedAt  DateTime      @default(now())
+  CaseHistory CaseHistory[]
 }
 
 enum CaseStatus {
-  Open
-  Closed
   Pending
+  Open
   InProgress
+  Closed
 }
 
 model TransferHistory {
@@ -216,14 +218,15 @@ model TransferHistory {
 }
 
 model CaseHistory {
-  id              String        @id @default(cuid())
+  id              String         @id @default(cuid())
   detectiveId     String
   policeOfficerId String
-  policeOfficer   PoliceOfficer @relation(fields: [policeOfficerId], references: [userId])
-  detective       Detective     @relation(fields: [detectiveId], references: [userId])
+  policeOfficer   PoliceOfficer  @relation(fields: [policeOfficerId], references: [userId])
+  detective       Detective      @relation(fields: [detectiveId], references: [userId])
   caseId          String
+  case            CaseAssignment @relation(fields: [caseId], references: [id])
   details         String
-  updatedAt       DateTime      @default(now())
+  updatedAt       DateTime       @default(now())
 }
 
 enum Role {
