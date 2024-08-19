@@ -4,6 +4,7 @@ import { CustomResponse } from "@/helpers/CustomResponse";
 import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { asyncHandler } from "@/helpers/asyncHandler";
+import { cookies } from "next/headers";
 
 export const POST = asyncHandler(async (req: NextRequest) => {
 
@@ -63,7 +64,7 @@ export const POST = asyncHandler(async (req: NextRequest) => {
         }
     )
 
-    req.cookies.set("accessToken", token)
+    cookies().set("accessToken", token)
 
     return CustomResponse(
         200,
