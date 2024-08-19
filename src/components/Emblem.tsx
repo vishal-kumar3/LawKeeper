@@ -8,7 +8,7 @@ export default function Emblem() {
             <div className="w-[25vw] relative text-center">
                 <QuoteIcon className=" rotate-180 inline size-4" />
                 <span className="font-medium text-lg italic inline">
-                    Constitution is not a mere lawyer's document; it is a vehicle of life, and its spirit is always the spirit of age.
+                    Constitution is not a mere lawyer&apos;s document; it is a vehicle of life, and its spirit is always the spirit of age.
                 </span>
                 <QuoteIcon className="inline size-4" />
                 <span className="font-bold text-lg absolute italic -bottom-10 right-0"> ~ BR Ambedkar</span>
