@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import subdomains from './subdomain.json';
-
+import { asyncHandler } from "./helpers/asyncHandler";
 
 export const config = {
   matcher: [

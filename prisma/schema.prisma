@@ -19,7 +19,7 @@ model User {
   fullName         String
   email            String?   @unique
   emailVerified    DateTime?
-  phoneNumber      Int       @unique
+  phoneNumber      String       @unique
   profilePhoto     String?
   dateOfBirth      DateTime?
   registrationDate DateTime  @default(now())
