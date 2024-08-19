@@ -55,18 +55,21 @@ model UserDocuments {
 }
 
 model Address {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  type          AddressType
-  country       String
-  state         String
-  city          String
-  postalCode    String
-  street        String?
-  houseNumber   String?
-  landmark      String?
-  policeStation PoliceStation?
-  user          User           @relation(fields: [userId], references: [id])
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  type            AddressType       @default(CurrentAddress)
+  country         String
+  state           String
+  city            String
+  postalCode      String
+  street          String?
+  landmark        String?
+  houseNumber     String?
+  activeDetective Detective[]
+  policeStation   PoliceStation?
+  TransferredTo   TransferHistory[] @relation("TransferredTo")
+  TransferredFrom TransferHistory[] @relation("TransferredFrom")
+  user            User              @relation(fields: [userId], references: [id])
 }
 
 enum AddressType {
@@ -91,15 +94,27 @@ model PoliceOfficer {
   userId            String            @id @unique
   user              User              @relation(fields: [userId], references: [id])
   badgeNumber       String            @unique
-  rank              String
-  assignedStationId String?
-  assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
-  department        Department
   assignedCaseId    String?
+  assignedStationId String?
+  rank              Rank?
+  department        Department[]
+  assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
   assignedCases     CaseAssignment?   @relation(fields: [assignedCaseId], references: [id])
-  // caseHistory
+  caseHistory       CaseHistory[]
   transferHistory   TransferHistory[]
-  accessLevel       String
+}
+
+enum Rank {
+  Constable
+  TrafficPolice
+  SubInspector
+  Inspector
+  DSP
+  SP
+  DCP
+  IGP
+  ADGP
+  DGP
 }
 
 enum Department {
@@ -114,32 +129,41 @@ enum Department {
 model Detective {
   userId            String           @id @unique
   user              User             @relation(fields: [userId], references: [id])
-  investigationArea String?
-  // Current Posting
+  investigationArea Address[]
   activeCases       CaseAssignment[]
   specialization    String
   caseHistory       CaseHistory[]
 }
 
+enum DetectiveSpecialization {
+  CyberCrime
+  Narcotics
+  WemenSafety
+  SpecialInvestigation
+}
+
+enum CaseType {
+  Criminal
+  Civil
+  Traffic
+  CyberCrime
+  Narcotics
+  WemenSafety
+  SpecialInvestigation
+}
+
 model Administrator {
   userId String @id @unique
   user   User   @relation(fields: [userId], references: [id])
-  // adminLevel           String
-  // systemSetup          String
-  // userManagement       String
-  // systemLogs           String
-  // databaseManagement   String
-  // customizableSettings String
 }
 
 model PoliceStation {
-  id            String          @id @default(cuid())
-  stationName   String
-  locationId    String?         @unique
-  location      Address?        @relation(fields: [locationId], references: [id])
-  // areaOfControl String
-  departments   String[]
-  officers      PoliceOfficer[]
+  id          String          @id @default(cuid())
+  stationName String
+  locationId  String?         @unique
+  departments String[]
+  location    Address?        @relation(fields: [locationId], references: [id])
+  officers    PoliceOfficer[]
 }
 
 model LicenseApplication {
@@ -166,33 +190,44 @@ model Complaint {
 model CaseAssignment {
   id          String          @id @default(cuid())
   caseId      String
-  officer     PoliceOfficer[]
   detectiveId String?
-  detective   Detective?      @relation(fields: [detectiveId], references: [userId])
-  assignedAt  DateTime        @default(now())
+  caseType    CaseType
+  caseStatus  CaseStatus      @default(Pending)
+  officer     PoliceOfficer[]
+  detective   Detective?    @relation(fields: [detectiveId], references: [userId])
+  assignedAt  DateTime      @default(now())
+  CaseHistory CaseHistory[]
 }
 
+enum CaseStatus {
+  Pending
+  Open
+  InProgress
+  Closed
+}
 
-// TODO: Address
 model TransferHistory {
   id            String        @id @default(cuid())
   officerId     String
   officer       PoliceOfficer @relation(fields: [officerId], references: [userId])
   fromStationId String
   toStationId   String
+  toStation     Address       @relation("TransferredTo", fields: [toStationId], references: [id])
+  fromStation   Address       @relation("TransferredFrom", fields: [fromStationId], references: [id])
   transferredAt DateTime      @default(now())
 }
 
 model CaseHistory {
-  id          String    @id @default(cuid())
-  detectiveId String
-  detective   Detective @relation(fields: [detectiveId], references: [userId])
-  caseId      String
-  details     String
-  updatedAt   DateTime  @default(now())
+  id              String         @id @default(cuid())
+  detectiveId     String
+  policeOfficerId String
+  policeOfficer   PoliceOfficer  @relation(fields: [policeOfficerId], references: [userId])
+  detective       Detective      @relation(fields: [detectiveId], references: [userId])
+  caseId          String
+  case            CaseAssignment @relation(fields: [caseId], references: [id])
+  details         String
+  updatedAt       DateTime       @default(now())
 }
-
-// TODO: Police station pe history hoga cases ka
 
 enum Role {
   Citizen
