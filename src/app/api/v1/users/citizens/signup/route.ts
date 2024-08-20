@@ -2,9 +2,9 @@ import { NextRequest } from "next/server";
 import prisma from "@/prisma";
 import bcryptjs from "bcryptjs"
 import { CustomResponse } from "@/helpers/CustomResponse";
-import jwt from "jsonwebtoken"
 import { asyncHandler } from "@/helpers/asyncHandler";
 import { cookies } from "next/headers";
+import { citizenTokenSign } from "@/utils/auth";
 
 export const POST = asyncHandler(async (req: NextRequest) => {
 
@@ -47,14 +47,10 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     where: {
       OR: [
         {
-          email: {
-            equals: email
-          }
+          email: email
         },
         {
-          phoneNumber: {
-            equals: phoneNumber
-          }
+          phoneNumber: phoneNumber
         }
       ]
     }
@@ -76,20 +72,24 @@ export const POST = asyncHandler(async (req: NextRequest) => {
       email,
       password: hashedPassword,
       gender,
-      phoneNumber
+      phoneNumber,
+      role: "Citizen",
+    },
+  })
+
+  const connectUserToCitizen = await prisma.citizen.create({
+    data: {
+      userId: newUser.id
     }
   })
 
   newUser.password = ""
-  const token = jwt.sign({
+  const token = await citizenTokenSign({
     id: newUser.id,
-    email
-  },
-    process.env.JWT_SECRET_KEY!,
-    {
-      expiresIn: "10d"
-    }
-  )
+    email: newUser.email,
+    // TODO: Add verified field
+    varified: false
+  })
 
   cookies().set("accessToken", token)
 

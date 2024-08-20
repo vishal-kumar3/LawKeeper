@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import subdomains from './subdomain.json';
-import { asyncHandler } from "./helpers/asyncHandler";
+import { decodeToken } from './utils/auth';
 
 export const config = {
   matcher: [
@@ -12,6 +12,10 @@ export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const hostname = req.headers.get("host");
 
+  const cookie = req.cookies.get("accessToken")
+  const token = cookie?.value
+
+  const decryptedToken = decodeToken(token!)
 
   const allowedDomains = ["localhost:3000"]
 

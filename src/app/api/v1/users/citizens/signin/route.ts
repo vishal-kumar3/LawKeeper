@@ -5,13 +5,14 @@ import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { asyncHandler } from "@/helpers/asyncHandler";
 import { cookies } from "next/headers";
+import { citizenTokenSign } from "@/utils/auth";
 
 export const POST = asyncHandler(async (req: NextRequest) => {
 
   const body = await req.json()
-  const { emailOrPhoneNumber, password } = body
+  const { phoneNumber, password } = body
 
-  if (!emailOrPhoneNumber || !password)
+  if (!phoneNumber || !password)
     return CustomResponse(
       400,
       "Some fields are missing",
@@ -22,20 +23,9 @@ export const POST = asyncHandler(async (req: NextRequest) => {
       }
     )
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      OR: [
-        {
-          email: {
-            equals: emailOrPhoneNumber
-          }
-        },
-        {
-          phoneNumber: {
-            equals: emailOrPhoneNumber
-          }
-        }
-      ]
+      phoneNumber: phoneNumber
     }
   })
 
@@ -57,15 +47,10 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     )
 
   user.password = ""
-  const token = jwt.sign({
-      id: user.id,
-      email: user.email
-    },
-    process.env.JWT_SECRET_KEY!,
-    {
-      expiresIn: "10d"
-    }
-  )
+  const token = await citizenTokenSign({
+    id: user.id,
+    email: user.email,
+  })
 
   cookies().set("accessToken", token)
 

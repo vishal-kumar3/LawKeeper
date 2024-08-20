@@ -19,7 +19,7 @@ model User {
   fullName         String
   email            String?   @unique
   emailVerified    DateTime?
-  phoneNumber      String       @unique
+  phoneNumber      String   @unique
   profilePhoto     String?
   dateOfBirth      DateTime?
   registrationDate DateTime  @default(now())
@@ -29,7 +29,7 @@ model User {
   gender Gender
   role   Role   @default(Citizen)
 
-  citizen       Citizen?
+  citizen       Citizen?  
   policeOfficer PoliceOfficer?
   detective     Detective?
   administrator Administrator?
@@ -93,7 +93,7 @@ model Citizen {
 model PoliceOfficer {
   userId            String            @id @unique
   user              User              @relation(fields: [userId], references: [id])
-  badgeNumber       String            @unique
+  badgeNumber       String?            @unique
   assignedCaseId    String?
   assignedStationId String?
   rank              Rank?
@@ -131,7 +131,7 @@ model Detective {
   user              User             @relation(fields: [userId], references: [id])
   investigationArea Address[]
   activeCases       CaseAssignment[]
-  specialization    String
+  specialization    String?
   caseHistory       CaseHistory[]
 }
 
@@ -194,8 +194,8 @@ model CaseAssignment {
   caseType    CaseType
   caseStatus  CaseStatus      @default(Pending)
   officer     PoliceOfficer[]
-  detective   Detective?    @relation(fields: [detectiveId], references: [userId])
-  assignedAt  DateTime      @default(now())
+  detective   Detective?      @relation(fields: [detectiveId], references: [userId])
+  assignedAt  DateTime        @default(now())
   CaseHistory CaseHistory[]
 }
 

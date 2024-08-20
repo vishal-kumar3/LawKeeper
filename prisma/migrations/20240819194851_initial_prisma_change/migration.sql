@@ -1,17 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `createdAt` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `name` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `updatedAt` on the `User` table. All the data in the column will be lost.
-  - A unique constraint covering the columns `[email]` on the table `User` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[phoneNumber]` on the table `User` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `fullName` to the `User` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `gender` to the `User` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `password` to the `User` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `phoneNumber` to the `User` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "AddressType" AS ENUM ('CurrentAddress', 'PermanentAddress');
 
@@ -19,26 +5,40 @@ CREATE TYPE "AddressType" AS ENUM ('CurrentAddress', 'PermanentAddress');
 CREATE TYPE "Gender" AS ENUM ('Male', 'Female');
 
 -- CreateEnum
+CREATE TYPE "Rank" AS ENUM ('Constable', 'TrafficPolice', 'SubInspector', 'Inspector', 'DSP', 'SP', 'DCP', 'IGP', 'ADGP', 'DGP');
+
+-- CreateEnum
 CREATE TYPE "Department" AS ENUM ('Traffic', 'Crime', 'CyberCrime', 'Narcotics', 'WemenSafety', 'SpecialInvestigation');
+
+-- CreateEnum
+CREATE TYPE "DetectiveSpecialization" AS ENUM ('CyberCrime', 'Narcotics', 'WemenSafety', 'SpecialInvestigation');
+
+-- CreateEnum
+CREATE TYPE "CaseType" AS ENUM ('Criminal', 'Civil', 'Traffic', 'CyberCrime', 'Narcotics', 'WemenSafety', 'SpecialInvestigation');
+
+-- CreateEnum
+CREATE TYPE "CaseStatus" AS ENUM ('Pending', 'Open', 'InProgress', 'Closed');
 
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('Citizen', 'PoliceOfficer', 'Detective', 'Administrator');
 
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "createdAt",
-DROP COLUMN "name",
-DROP COLUMN "updatedAt",
-ADD COLUMN     "dateOfBirth" TIMESTAMP(3),
-ADD COLUMN     "email" TEXT,
-ADD COLUMN     "emailVerified" TIMESTAMP(3),
-ADD COLUMN     "fullName" TEXT NOT NULL,
-ADD COLUMN     "gender" "Gender" NOT NULL,
-ADD COLUMN     "lastLogin" TIMESTAMP(3),
-ADD COLUMN     "password" TEXT NOT NULL,
-ADD COLUMN     "phoneNumber" INTEGER NOT NULL,
-ADD COLUMN     "profilePhoto" TEXT,
-ADD COLUMN     "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "role" "Role" NOT NULL DEFAULT 'Citizen';
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "fullName" TEXT NOT NULL,
+    "email" TEXT,
+    "emailVerified" TIMESTAMP(3),
+    "phoneNumber" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "dateOfBirth" TIMESTAMP(3),
+    "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastLogin" TIMESTAMP(3),
+    "gender" "Gender" NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'Citizen',
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "UserDocuments" (
@@ -63,14 +63,14 @@ CREATE TABLE "UserDocuments" (
 CREATE TABLE "Address" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "type" "AddressType" NOT NULL,
+    "type" "AddressType" NOT NULL DEFAULT 'CurrentAddress',
     "country" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "city" TEXT NOT NULL,
     "postalCode" TEXT NOT NULL,
     "street" TEXT,
-    "houseNumber" TEXT,
     "landmark" TEXT,
+    "houseNumber" TEXT,
 
     CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
 );
@@ -87,11 +87,10 @@ CREATE TABLE "Citizen" (
 CREATE TABLE "PoliceOfficer" (
     "userId" TEXT NOT NULL,
     "badgeNumber" TEXT NOT NULL,
-    "rank" TEXT NOT NULL,
-    "assignedStationId" TEXT,
-    "department" "Department" NOT NULL,
     "assignedCaseId" TEXT,
-    "accessLevel" TEXT NOT NULL,
+    "assignedStationId" TEXT,
+    "rank" "Rank",
+    "department" "Department"[],
 
     CONSTRAINT "PoliceOfficer_pkey" PRIMARY KEY ("userId")
 );
@@ -99,7 +98,6 @@ CREATE TABLE "PoliceOfficer" (
 -- CreateTable
 CREATE TABLE "Detective" (
     "userId" TEXT NOT NULL,
-    "investigationArea" TEXT,
     "specialization" TEXT NOT NULL,
 
     CONSTRAINT "Detective_pkey" PRIMARY KEY ("userId")
@@ -152,6 +150,8 @@ CREATE TABLE "CaseAssignment" (
     "id" TEXT NOT NULL,
     "caseId" TEXT NOT NULL,
     "detectiveId" TEXT,
+    "caseType" "CaseType" NOT NULL,
+    "caseStatus" "CaseStatus" NOT NULL DEFAULT 'Pending',
     "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "CaseAssignment_pkey" PRIMARY KEY ("id")
@@ -172,12 +172,25 @@ CREATE TABLE "TransferHistory" (
 CREATE TABLE "CaseHistory" (
     "id" TEXT NOT NULL,
     "detectiveId" TEXT NOT NULL,
+    "policeOfficerId" TEXT NOT NULL,
     "caseId" TEXT NOT NULL,
     "details" TEXT NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "CaseHistory_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateTable
+CREATE TABLE "_AddressToDetective" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserDocuments_userId_key" ON "UserDocuments"("userId");
@@ -204,10 +217,10 @@ CREATE UNIQUE INDEX "Administrator_userId_key" ON "Administrator"("userId");
 CREATE UNIQUE INDEX "PoliceStation_locationId_key" ON "PoliceStation"("locationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "_AddressToDetective_AB_unique" ON "_AddressToDetective"("A", "B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
+CREATE INDEX "_AddressToDetective_B_index" ON "_AddressToDetective"("B");
 
 -- AddForeignKey
 ALTER TABLE "UserDocuments" ADD CONSTRAINT "UserDocuments_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -249,4 +262,22 @@ ALTER TABLE "CaseAssignment" ADD CONSTRAINT "CaseAssignment_detectiveId_fkey" FO
 ALTER TABLE "TransferHistory" ADD CONSTRAINT "TransferHistory_officerId_fkey" FOREIGN KEY ("officerId") REFERENCES "PoliceOfficer"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "TransferHistory" ADD CONSTRAINT "TransferHistory_toStationId_fkey" FOREIGN KEY ("toStationId") REFERENCES "Address"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TransferHistory" ADD CONSTRAINT "TransferHistory_fromStationId_fkey" FOREIGN KEY ("fromStationId") REFERENCES "Address"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CaseHistory" ADD CONSTRAINT "CaseHistory_policeOfficerId_fkey" FOREIGN KEY ("policeOfficerId") REFERENCES "PoliceOfficer"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "CaseHistory" ADD CONSTRAINT "CaseHistory_detectiveId_fkey" FOREIGN KEY ("detectiveId") REFERENCES "Detective"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CaseHistory" ADD CONSTRAINT "CaseHistory_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "CaseAssignment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AddressToDetective" ADD CONSTRAINT "_AddressToDetective_A_fkey" FOREIGN KEY ("A") REFERENCES "Address"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AddressToDetective" ADD CONSTRAINT "_AddressToDetective_B_fkey" FOREIGN KEY ("B") REFERENCES "Detective"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
