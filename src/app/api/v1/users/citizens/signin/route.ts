@@ -2,10 +2,9 @@ import { NextRequest } from "next/server";
 import prisma from "@/prisma";
 import { CustomResponse } from "@/helpers/CustomResponse";
 import bcryptjs from "bcryptjs"
-import jwt from "jsonwebtoken"
 import { asyncHandler } from "@/helpers/asyncHandler";
 import { cookies } from "next/headers";
-import { citizenTokenSign } from "@/utils/auth";
+import { signToken } from "@/auth";
 
 export const POST = asyncHandler(async (req: NextRequest) => {
 
@@ -47,9 +46,11 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     )
 
   user.password = ""
-  const token = await citizenTokenSign({
+  const token = await signToken({
     id: user.id,
-    email: user.email,
+    name: user.fullName,
+    role: user.role,
+    verified: false
   })
 
   cookies().set("accessToken", token)

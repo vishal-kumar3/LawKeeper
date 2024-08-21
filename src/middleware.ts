@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import subdomains from './subdomain.json';
-import { decodeToken } from './utils/auth';
+import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes, restrictedRoutes } from './routes';
+import { auth } from './auth';
 
 export const config = {
   matcher: [
@@ -11,26 +12,71 @@ export const config = {
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const hostname = req.headers.get("host");
+  const session = await auth()
+  const isLoggedIn = !!session
 
-  const cookie = req.cookies.get("accessToken")
-  const token = cookie?.value
+  console.log("Route:- ", req.nextUrl.pathname)
+  console.log("isLoggedIn:- ", isLoggedIn)
 
-  const decryptedToken = decodeToken(token!)
+  const isApiAuthRoute = url.pathname.startsWith(apiAuthPrefix);
+  const isPublicRoute = publicRoutes.includes(url.pathname);
+  const isAuthRoute = authRoutes.includes(url.pathname);
+  const isRestrictedRoute = restrictedRoutes.includes(url.pathname)
 
   const allowedDomains = ["localhost:3000"]
 
   const isAllowedDomain = allowedDomains.some(domain => hostname?.includes(domain))
   const subdomain = hostname?.split(".")[0]
+  const subdomainData = subdomains.find(sub => sub.subdomain === subdomain)
+  console.log("Subdomain Data:- ", subdomainData?.subdomain)
 
-  if (isAllowedDomain && !subdomains.some(sub => sub.subdomain === subdomain)){
-    console.log("Subdomain not found", url.pathname, req.url)
+  if (isApiAuthRoute) {
+    return NextResponse.next()
+  }
+
+  if (isRestrictedRoute) {
+    return NextResponse.redirect(new URL('/', req.url))
+  }
+
+  if (isAuthRoute) {
+    console.log("AuthRoute")
+    if (isLoggedIn) {
+      console.log("LoggedIn")
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.url))
+    }
+
+    if (subdomains.some(sub => sub.subdomain === subdomain)) {
+      return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
+    }
+    return NextResponse.next()
+  }
+
+  if(!isLoggedIn && subdomainData){
+    // console.log("url.req:- ", req.nextUrl)
+    if(!session) return NextResponse.rewrite(new URL(`/`, req.url))
+    console.log("Yo:- ", session)
+    return
+  }
+
+  if (!isLoggedIn && !isPublicRoute) {
+    // yaha subdomain route check lgega
+    if (subdomains.some(sub => sub.subdomain === subdomain)) {
+      return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}/auth`, req.url))
+    }
+    return NextResponse.redirect(new URL("/auth/signin", req.url))
+  }
+
+
+  if (isAllowedDomain && !subdomains.some(sub => sub.subdomain === subdomain)) {
+    // If other subdomain is used instead of the allowed subdomains
+    // dedirect them to the main domain (citizen)
     return NextResponse.rewrite(new URL(url.pathname, req.url))
   }
 
-  const subdomainData = subdomains.find(sub => sub.subdomain === subdomain)
-  if(subdomainData){
+
+  if (subdomainData) {
     return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
   }
 
-  return new Response(null, {status: 404});
+  return new Response(null, { status: 404 });
 }

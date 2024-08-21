@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import axios from "axios"
 import {
   Form,
   FormControl,
@@ -15,38 +14,40 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
-import Link from "next/link"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert"
 import Loading from "@/components/loader"
 import Emblem from "@/components/Emblem"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import ErrorMessage from "./CustomMessage/ErrorMessage"
+import SuccessMessage from "./CustomMessage/SuccessMessage"
+import { useRouter } from "next/navigation"
+import { adminLogin } from "@/action/admin.action"
+import { Role } from "@prisma/client"
 
-const formSchema = z.object({
+export const AdminLoginSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number is invalid").max(10, "Phone number is invalid"),
   password: z.string().min(4, "Password should have atleast 4 letters"),
 }).refine(data => {
-  if (data.phoneNumber.startsWith("0")) return false
-  // phone number must not have any kind of alphabets or special characters or spaces
   if (!/^[0-9]*$/.test(data.phoneNumber)) return false
+  if (data.phoneNumber.startsWith("0")) return false
 
   return true
 })
 
-export default function Signin() {
+export type LoginProps  = {
+  role: Role
+}
 
-  const [showPass, setShowPass] = useState(false)
-  const [error, setError]: any = useState(null)
+export default function Login({role}: LoginProps) {
   const router = useRouter()
+  const [showPass, setShowPass] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [error, setError] = useState<string | undefined>("");
+  const [success, setSuccess] = useState<string | undefined>("");
+  const [loadingButton, setLoadingButton] = useState<boolean>(false);
+
+  const form = useForm<z.infer<typeof AdminLoginSchema>>({
+    resolver: zodResolver(AdminLoginSchema),
     defaultValues: {
       phoneNumber: "",
       password: "",
@@ -54,32 +55,21 @@ export default function Signin() {
     mode: "onChange",
   })
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      await axios.post("/api/v1/users/citizens/signin", values)
-      router.push("/")
-    } catch (err: any) {
-      console.log(err)
-      if (err?.response.status === 500)
-        setError("Something went wrong! Please try again later")
-      else setError(err.message)
-    }
-    setError("Something went wrong! Please try again later")
+  const onSubmit = async (values: z.infer<typeof AdminLoginSchema>) => {
+    setError("");
+    setSuccess("");
+
+    setLoadingButton(true);
+    const res = await adminLogin(values, role);
+    if(res?.error) setLoadingButton(false);
+    if(res?.success) router.replace("/");
+    setError(res?.error || "");
+    setSuccess(res?.success || "");
   }
 
 
   return (
     <div className="min-h-screen flex md:flex-row flex-col items-center justify-center gap-[5vw] relative">
-      {
-        error &&
-        <Alert className=" absolute top-3 w-[40vw]" variant="destructive">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error}
-          </AlertDescription>
-        </Alert>
-      }
       <Emblem />
 
       <Card className="border-none shadow-none w-[90%] sm:w-[60%] md:w-[40%] lg:w-[30%] xl:w-[25%]">
@@ -135,20 +125,22 @@ export default function Signin() {
                   Show Password
                 </label>
               </div>
-              <Button className="w-full" disabled={!form.formState.isValid || form.formState.isSubmitting} variant={"default"} type="submit">
+              <ErrorMessage message={error} />
+              <SuccessMessage message={success} />
+              <Button
+                className="w-full cursor-pointer font-semibold dark:disabled:opacity-50 disabled:opacity-90 disabled:cursor-not-allowed"
+                disabled={!form.formState.isValid || form.formState.isSubmitting}
+                variant={"default"}
+                type="submit"
+              >
                 {
-                  form.formState.isSubmitting ?
+                  form.formState.isSubmitting || loadingButton ?
                     <Loading />
                     : "Log In"
                 }
               </Button>
             </form>
           </Form>
-          <p className="mt-4">
-            <Link className="text-sm text-blue-500 hover:text-blue-600" href={'/auth/signup'}>
-              Don&apos;t have an Account? Create One Here
-            </Link>
-          </p>
         </CardContent>
       </Card>
 

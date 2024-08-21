@@ -1,4 +1,5 @@
-import { Button } from '@/components/ui/button'
+import Login from '@/components/forms/AdminLogin'
+import { Role } from '@prisma/client'
 import React from 'react'
 
 type props = {}
@@ -6,7 +7,7 @@ type props = {}
 const page = (props: props) => {
   return (
     <div>
-      <Button>Admin</Button>
+      <Login role={Role.Detective} />
     </div>
   )
 }

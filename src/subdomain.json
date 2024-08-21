@@ -1,12 +1,15 @@
 
 [
   {
-    "subdomain": "police"
+    "subdomain": "police",
+    "role": "PoliceOfficer"
   },
   {
-    "subdomain": "detective"
+    "subdomain": "detective",
+    "role": "Detective"
   },
   {
-    "subdomain": "admin"
+    "subdomain": "admin",
+    "role": "Administrator"
   }
 ]

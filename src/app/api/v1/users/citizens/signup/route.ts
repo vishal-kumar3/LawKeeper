@@ -4,7 +4,7 @@ import bcryptjs from "bcryptjs"
 import { CustomResponse } from "@/helpers/CustomResponse";
 import { asyncHandler } from "@/helpers/asyncHandler";
 import { cookies } from "next/headers";
-import { citizenTokenSign } from "@/utils/auth";
+import { signToken } from "@/auth";
 
 export const POST = asyncHandler(async (req: NextRequest) => {
 
@@ -84,11 +84,11 @@ export const POST = asyncHandler(async (req: NextRequest) => {
   })
 
   newUser.password = ""
-  const token = await citizenTokenSign({
+  const token = await signToken({
     id: newUser.id,
-    email: newUser.email,
-    // TODO: Add verified field
-    varified: false
+    name: newUser.fullName,
+    role: newUser.role,
+    verified: false
   })
 
   cookies().set("accessToken", token)
