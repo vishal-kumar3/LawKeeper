@@ -54,6 +54,7 @@ export default async function middleware(req: NextRequest) {
   if(!isLoggedIn && subdomainData){
     // console.log("url.req:- ", req.nextUrl)
     if(!session) return NextResponse.rewrite(new URL(`/`, req.url))
+      // TODO: Need to implement role and subdomain for security
     console.log("Yo:- ", session)
     return
   }
