@@ -19,13 +19,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{scrollBehavior: "smooth"}}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Moderustic:wght@300..800&family=New+Amsterdam&display=swap" rel="stylesheet" />
+      </head>
       <body className={cn(
-          "bg-background font-sans antialiased",
-          inter.variable
-        )}>
-          {children}
-        </body>
+        "bg-background font-sans antialiased",
+        inter.variable
+      )}>
+        {children}
+      </body>
     </html>
   );
 }

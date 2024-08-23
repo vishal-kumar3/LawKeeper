@@ -29,8 +29,10 @@ export const getJwtSecretkey = () => {
 export const verifyAuth = async (token: string) => {
   try{
     const verified = await jwtVerify<UserPayload>(token, new TextEncoder().encode(getJwtSecretkey()))
+    // console.log(verified.payload)
     return verified.payload as UserPayload
   } catch (error){
+    console.log(error)
     return null
   }
 }
@@ -65,8 +67,9 @@ export const getToken = (): string | undefined => {
 export const auth = async () => {
   const token = await getToken();
   if(!token) return null
-
+  
   const session: UserPayload | null = await verifyAuth(token);
+  console.log("token", session)
   return session
 }
 
