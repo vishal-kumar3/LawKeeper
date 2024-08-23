@@ -2,8 +2,11 @@
  * An array of routes that are public
  * @type {string[]}
  */
+
 export const publicRoutes = [
   "/",
+  "/public/*",
+  "/images/*"
 ];
 
 /**
@@ -11,11 +14,13 @@ export const publicRoutes = [
  * @type {string[]}
  */
 export const authRoutes = [
-  "/auth",
   "/auth/signin",
   "/auth/signup",
 ]
 
+export const subdomainsAuthRoutes = [
+  "/auth",
+]
 
 export const restrictedRoutes = [
   "/admin",

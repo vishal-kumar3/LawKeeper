@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import subdomains from './subdomain.json';
-import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes, restrictedRoutes } from './routes';
+import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes, restrictedRoutes, subdomainsAuthRoutes } from './routes';
 import { auth } from './auth';
 
 export const config = {
@@ -15,13 +15,15 @@ export default async function middleware(req: NextRequest) {
   const session = await auth()
   const isLoggedIn = !!session
 
-  console.log("Route:- ", req.nextUrl.pathname)
+  console.log("Route:- ", url.pathname)
   console.log("isLoggedIn:- ", isLoggedIn)
 
   const isApiAuthRoute = url.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(url.pathname);
   const isAuthRoute = authRoutes.includes(url.pathname);
+  const isSubdomainAuthRoute = subdomainsAuthRoutes.includes(url.pathname)
   const isRestrictedRoute = restrictedRoutes.includes(url.pathname)
+  const isStaticFile = url.pathname.startsWith("/public") || url.pathname.startsWith("/images")
 
   const allowedDomains = ["localhost:3000"]
 
@@ -30,10 +32,12 @@ export default async function middleware(req: NextRequest) {
   const subdomainData = subdomains.find(sub => sub.subdomain === subdomain)
   console.log("Subdomain Data:- ", subdomainData?.subdomain)
 
-  if (isApiAuthRoute) {
+
+
+  if (isApiAuthRoute || isStaticFile) {
+    console.log("pathname:- ", url.pathname)
     return NextResponse.next()
   }
-
   if (isRestrictedRoute) {
     return NextResponse.redirect(new URL('/', req.url))
   }
@@ -44,11 +48,12 @@ export default async function middleware(req: NextRequest) {
       console.log("LoggedIn")
       return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.url))
     }
-
-    if (subdomains.some(sub => sub.subdomain === subdomain)) {
-      return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
-    }
     return NextResponse.next()
+  }
+
+  if(isSubdomainAuthRoute && subdomainData){
+    if(isLoggedIn) return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.url))
+    return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
   }
 
   if(!isLoggedIn && subdomainData){
