@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import subdomains from './subdomain.json';
-import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes, restrictedRoutes, subdomainsAuthRoutes } from './routes';
+import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, loggedUserRoutes, publicRoutes, restrictedRoutes, subdomainsAuthRoutes } from './routes';
 import { auth } from './auth';
 
 export const config = {
@@ -56,10 +56,10 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.rewrite(new URL(`/${subdomain}${url.pathname}`, req.url))
   }
 
-  if(!isLoggedIn && subdomainData){
+  if (!isLoggedIn && subdomainData) {
     // console.log("url.req:- ", req.nextUrl)
-    if(!session) return NextResponse.rewrite(new URL(`/`, req.url))
-      // TODO: Need to implement role and subdomain for security
+    if (!session) return NextResponse.rewrite(new URL(`/`, req.url))
+    // TODO: Need to implement role and subdomain for security
     console.log("Yo:- ", session)
     return
   }
@@ -77,6 +77,10 @@ export default async function middleware(req: NextRequest) {
     // If other subdomain is used instead of the allowed subdomains
     // dedirect them to the main domain (citizen)
     return NextResponse.rewrite(new URL(url.pathname, req.url))
+  }
+
+  if (isAllowedDomain && isLoggedIn && loggedUserRoutes.includes(url.pathname)) {
+    return NextResponse.redirect("/")
   }
 
 

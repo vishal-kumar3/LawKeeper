@@ -21,6 +21,7 @@ const config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
+        amsterdam: ["Moderustic", "sans-serif"]
       },
       colors: {
         border: "hsl(var(--border))",
@@ -79,12 +80,17 @@ const config = {
           from: { opacity: "0.3", transform: "translateX(10px)" },
           to: { opacity: "1", transform: "translateX(0px)" }
         },
+        "appear-up": {
+          from: { opacity: "0.3", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0px)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "appear-left": "appear-left 0.5s ease-out",
-        "appear-right": "appear-right 0.5s ease-out"
+        "appear-right": "appear-right 0.5s ease-out",
+        "appear-up": "appear-up 0.5s ease-out"
       },
     },
   },

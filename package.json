@@ -31,6 +31,7 @@
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "1.0.0",
     "embla-carousel-react": "^8.1.8",
     "jose": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
