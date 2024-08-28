@@ -14,26 +14,35 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  password         String
+  id               String         @id @default(cuid())
   fullName         String
-  email            String?   @unique
+  email            String?        @unique
+  password         String
   emailVerified    DateTime?
-  phoneNumber      String   @unique
-  profilePhoto     String?
+  phoneNumber      String         @unique
+  profilePhoto     Image?
   dateOfBirth      DateTime?
-  registrationDate DateTime  @default(now())
+  registrationDate DateTime       @default(now())
   lastLogin        DateTime?
   address          Address[]
+  gender           Gender
+  role             Role           @default(Citizen)
+  citizen          Citizen?
+  policeOfficer    PoliceOfficer?
+  detective        Detective?
+  administrator    Administrator?
+  userDocuments    UserDocuments?
+}
 
-  gender Gender
-  role   Role   @default(Citizen)
-
-  citizen       Citizen?  
-  policeOfficer PoliceOfficer?
-  detective     Detective?
-  administrator Administrator?
-  userDocuments UserDocuments?
+model Image {
+  id            String         @id @default(cuid())
+  userId        String?        @unique
+  stationId     String?        @unique
+  url           String
+  cloudId       String
+  alt           String?
+  user          User?          @relation(fields: [userId], references: [id])
+  policeStation PoliceStation? @relation(fields: [stationId], references: [id])
 }
 
 model UserDocuments {
@@ -58,9 +67,10 @@ model Address {
   id              String            @id @default(cuid())
   userId          String            @unique
   type            AddressType       @default(CurrentAddress)
-  country         String
+  country         String            @default("India")
   state           String
   city            String
+  district        String
   postalCode      String
   street          String?
   landmark        String?
@@ -93,27 +103,30 @@ model Citizen {
 model PoliceOfficer {
   userId            String            @id @unique
   user              User              @relation(fields: [userId], references: [id])
-  badgeNumber       String?            @unique
+  badgeNumber       String?           @unique
   assignedCaseId    String?
   assignedStationId String?
   rank              Rank?
-  department        Department[]
-  assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
-  assignedCases     CaseAssignment?   @relation(fields: [assignedCaseId], references: [id])
   caseHistory       CaseHistory[]
   transferHistory   TransferHistory[]
+  department        Department[]
+  PsHead            PoliceStation?    @relation(name: "PsHead")
+  assignedStation   PoliceStation?    @relation(fields: [assignedStationId], references: [id])
+  assignedCases     CaseAssignment?   @relation(fields: [assignedCaseId], references: [id])
 }
 
 enum Rank {
+  Board
   Constable
   TrafficPolice
-  SubInspector
+  ASI
+  SI
   Inspector
   DSP
   SP
-  DCP
-  IGP
-  ADGP
+  DIG
+  IG
+  ADG
   DGP
 }
 
@@ -158,12 +171,17 @@ model Administrator {
 }
 
 model PoliceStation {
-  id          String          @id @default(cuid())
-  stationName String
-  locationId  String?         @unique
-  departments String[]
-  location    Address?        @relation(fields: [locationId], references: [id])
-  officers    PoliceOfficer[]
+  id           String          @id @default(cuid())
+  stationName  String
+  stationImage Image?
+  stationMail  String?
+  stationPhone String?
+  locationId   String?         @unique
+  departments  String[]
+  SHOId        String?         @unique
+  SHO          PoliceOfficer?  @relation(name: "PsHead", fields: [SHOId], references: [userId])
+  location     Address?        @relation(fields: [locationId], references: [id])
+  officers     PoliceOfficer[]
 }
 
 model LicenseApplication {

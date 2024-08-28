@@ -2,8 +2,8 @@ import { CardProps } from "@/components/SubdomainDashboard/AppointOfficersCard";
 
 export const AppointOfficersCardProps: CardProps[] = [
   {
-    title: "Add new recruit officers",
-    description: "Add new officer to the system",
+    title: "Authorize State Police Recruitment Board",
+    description: "Board to recruit officers for State Level Police",
     link: ""
   },
   {
