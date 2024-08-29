@@ -13,11 +13,14 @@ export const GET = asyncHandler(async (req: NextRequest) => {
   const decodedToken: UserPayload | null = await verifyAuth(token)
   if (!decodedToken) return CustomResponse(403, "No user found", {}, {})
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
         where: {
-            id: {
-                equals: decodedToken.id
-            }
+            id: decodedToken.id
+        },
+        include: {
+            address: true,
+            userDocuments: true,
+            Image: true
         }
     })
 
