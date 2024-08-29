@@ -1,6 +1,8 @@
 'use server'
 
-import { UserPayload, verifyAuth } from "@/auth";
+import { auth, UserPayload, verifyAuth } from "@/auth";
+import prisma from "@/prisma";
+import { User, UserWithImage } from "@/types/user.types";
 import { cookies } from "next/headers";
 
 export async function getUser() {
@@ -11,4 +13,28 @@ export async function getUser() {
         console.log(err)
         return null
     }
+}
+
+export const getCurrentUser = async () => {
+  try{
+    const session = await auth();
+    if(!session) return null
+
+    const currentUser: UserWithImage = await prisma.user.findUnique({
+      where: {
+        id: session.id,
+        role: "Citizen",
+      },
+      include: {
+        profilePhoto: true
+      }
+    })
+
+    if(!currentUser) return null
+
+    return currentUser
+  }
+  catch(err){
+    console.error(err)
+  }
 }

@@ -16,7 +16,7 @@ export interface UserPayload extends JwtPayload {
   verified?: boolean
 }
 
-export const getJwtSecretkey = async ( ): Promise<Uint8Array> => {
+export const getJwtSecretkey = async (): Promise<Uint8Array> => {
   const secret = process.env.JWT_SECRET_KEY
 
   if (!secret || secret.length === 0) {

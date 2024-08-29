@@ -1,0 +1,281 @@
+[
+  {
+    "rank": "Constable",
+    "role": "Constable",
+    "recruitment": {
+      "authority": {
+        "rank": "State Public Recruitment Board",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      },
+      "eligibility": {
+        "nextRank": "Assistant Sub-Inspector",
+        "role": "ASI",
+        "experience": "5",
+        "criteria": "Performance and Seniority"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      }
+    }
+  },
+  {
+    "rank": "Assistant Sub-Inspector",
+    "role": "ASI",
+    "recruitment": {
+      "authority": {
+        "rank": "Union Public Service Commission",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      },
+      "eligibility": {
+        "nextRank": "Sub-Inspector",
+        "role": "SI",
+        "experience": "7",
+        "criteria": "Performance, Seniority, Passing Departmental Exam"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      }
+    }
+  },
+  {
+    "rank": "Sub-Inspector",
+    "role": "SI",
+    "recruitment": {
+      "authority": {
+        "rank": "State Public Service Commission",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      },
+      "eligibility": {
+        "nextRank": "Inspector",
+        "role": "Inspector",
+        "experience": "10",
+        "criteria": "Performance, Seniority, Passing Departmental Exam"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Superintendent of Police",
+        "role": "SP"
+      }
+    }
+  },
+  {
+    "rank": "Inspector",
+    "role": "Inspector",
+    "recruitment": {
+      "authority": {
+        "rank": "Staff Selection Commission",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Deputy Inspector General of Police",
+        "role": "DIG"
+      },
+      "eligibility": {
+        "nextRank": "Deputy Superintendent of Police",
+        "role": "DSP",
+        "experience": "12",
+        "criteria": "Performance, Seniority, Passing Departmental Exam"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Deputy Inspector General of Police",
+        "role": "DIG"
+      }
+    }
+  },
+  {
+    "rank": "Deputy Superintendent of Police",
+    "role": "DSP",
+    "recruitment": {
+      "authority": {
+        "rank": "State Public Service Commission or UPSC",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Inspector General of Police",
+        "role": "IG"
+      },
+      "eligibility": {
+        "nextRank": "Superintendent of Police",
+        "role": "SP",
+        "experience": "15",
+        "criteria": "Performance, Seniority, Passing Departmental Exam"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Inspector General of Police",
+        "role": "IG"
+      }
+    }
+  },
+  {
+    "rank": "Superintendent of Police",
+    "role": "SP",
+    "recruitment": {
+      "authority": {
+        "rank": "Recruited through UPSC",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Inspector General of Police",
+        "role": "IG"
+      },
+      "eligibility": {
+        "nextRank": "Deputy Inspector General of Police",
+        "role": "DIG",
+        "experience": "18",
+        "criteria": "Performance, Seniority, Passing Departmental Exam"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Inspector General of Police",
+        "role": "IG"
+      }
+    }
+  },
+  {
+    "rank": "Deputy Inspector General of Police",
+    "role": "DIG",
+    "recruitment": {
+      "authority": {
+        "rank": "UPSC",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      },
+      "eligibility": {
+        "nextRank": "Inspector General of Police",
+        "role": "IG",
+        "experience": "20",
+        "criteria": "Performance, Seniority"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      }
+    }
+  },
+  {
+    "rank": "Inspector General of Police",
+    "role": "IG",
+    "recruitment": {
+      "authority": {
+        "rank": "UPSC",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      },
+      "eligibility": {
+        "nextRank": "Additional Director General of Police",
+        "role": "ADG",
+        "experience": "22",
+        "criteria": "Performance, Seniority"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      }
+    }
+  },
+  {
+    "rank": "Additional Director General of Police",
+    "role": "ADG",
+    "recruitment": {
+      "authority": {
+        "rank": "UPSC",
+        "role": "Board"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      },
+      "eligibility": {
+        "nextRank": "Director General of Police",
+        "role": "DGP",
+        "experience": "25",
+        "criteria": "Performance, Seniority"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Director General of Police",
+        "role": "DGP"
+      }
+    }
+  },
+  {
+    "rank": "Director General of Police",
+    "role": "DGP",
+    "recruitment": {
+      "authority": {
+        "rank": "Appointed by State Government from senior-most IPS officers",
+        "role": "State Government"
+      }
+    },
+    "promotion": {
+      "authority": {
+        "rank": "Typically, no further promotion within the state",
+        "role": "Central Government"
+      },
+      "eligibility": {
+        "nextRank": "Central or Advisory Positions",
+        "role": "Central Government",
+        "criteria": "Retirement or Special Appointment"
+      }
+    },
+    "transfer": {
+      "authority": {
+        "rank": "Appointed and transferred by State or Central Government",
+        "role": "State or Central Government"
+      }
+    }
+  }
+]

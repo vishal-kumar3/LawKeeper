@@ -9,23 +9,34 @@ datasource db {
 
 model User {
   id               String         @id @default(cuid())
-  password         String
   fullName         String
   email            String?        @unique
+  password         String
   emailVerified    DateTime?
   phoneNumber      String         @unique
+  profilePhoto     Image?
   dateOfBirth      DateTime?
   registrationDate DateTime       @default(now())
   lastLogin        DateTime?
+  address          Address[]
   gender           Gender
   role             Role           @default(Citizen)
-  address          Address?
-  administrator    Administrator?
   citizen          Citizen?
-  detective        Detective?
-  Image            Image?
   policeOfficer    PoliceOfficer?
+  detective        Detective?
+  administrator    Administrator?
   userDocuments    UserDocuments?
+}
+
+model Image {
+  id            String         @id @default(cuid())
+  userId        String?        @unique
+  stationId     String?        @unique
+  url           String
+  cloudId       String
+  alt           String?
+  user          User?          @relation(fields: [userId], references: [id])
+  policeStation PoliceStation? @relation(fields: [stationId], references: [id])
 }
 
 model UserDocuments {
@@ -49,14 +60,14 @@ model Address {
   id              String            @id @default(cuid())
   userId          String            @unique
   type            AddressType       @default(CurrentAddress)
-  country         String
+  country         String            @default("India")
   state           String
   city            String
+  district        String
   postalCode      String
   street          String?
   landmark        String?
   houseNumber     String?
-  district        String
   user            User              @relation(fields: [userId], references: [id])
   policeStation   PoliceStation?
   TransferredFrom TransferHistory[] @relation("TransferredFrom")
@@ -169,17 +180,6 @@ model CaseHistory {
   policeOfficer   PoliceOfficer  @relation(fields: [policeOfficerId], references: [userId])
 }
 
-model Image {
-  id            String         @id
-  userId        String?        @unique
-  stationId     String?        @unique
-  url           String
-  cloudId       String
-  alt           String?
-  PoliceStation PoliceStation? @relation(fields: [stationId], references: [id])
-  User          User?          @relation(fields: [userId], references: [id])
-}
-
 enum AddressType {
   CurrentAddress
   PermanentAddress
@@ -230,6 +230,7 @@ enum CaseType {
   WemenSafety
   SpecialInvestigation
 }
+
 
 enum CaseStatus {
   Pending

@@ -25,13 +25,11 @@ import { adminLogin } from "@/action/admin.action"
 import { Role } from "@prisma/client"
 
 export const AdminLoginSchema = z.object({
-  phoneNumber: z.string().min(10, "Phone number is invalid").max(10, "Phone number is invalid"),
+  phoneNumber: z.string()
+    .min(10, "Phone number is invalid")
+    .max(10, "Phone number is invalid")
+    .regex(new RegExp("^[0-9]{10}"), "Phone number is invalid"),
   password: z.string().min(4, "Password should have atleast 4 letters"),
-}).refine(data => {
-  if (!/^[0-9]*$/.test(data.phoneNumber)) return false
-  if (data.phoneNumber.startsWith("0")) return false
-
-  return true
 })
 
 export type LoginProps  = {
