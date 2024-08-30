@@ -32,7 +32,7 @@ const RecruitOfficerForm = z.object({
     city: z.string(),
     state: z.string(),
     country: z.string(),
-    pincode: z.string().regex(new RegExp("^[0-9]{7}$"), { message: "Invalid Pincode" }),
+    pincode: z.string().regex(new RegExp("^[0-9]{6}$"), { message: "Invalid Pincode" }),
   }),
   badgeNumber: z.string(),
   rank: z.string(),

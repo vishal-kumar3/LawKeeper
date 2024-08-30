@@ -65,21 +65,29 @@ model UserDocuments {
 
 model Address {
   id              String            @id @default(cuid())
-  userId          String            @unique
-  type            AddressType       @default(CurrentAddress)
+  type            AddressType?
   country         String            @default("India")
+  zone            Zone?
   state           String
   city            String
   district        String
   postalCode      String
   street          String?
   landmark        String?
-  houseNumber     String?
+  address         String?
   activeDetective Detective[]
   policeStation   PoliceStation?
   TransferredTo   TransferHistory[] @relation("TransferredTo")
   TransferredFrom TransferHistory[] @relation("TransferredFrom")
-  user            User              @relation(fields: [userId], references: [id])
+  user            User[]
+}
+
+enum Zone {
+  North
+  South
+  East
+  West
+  Central
 }
 
 enum AddressType {
