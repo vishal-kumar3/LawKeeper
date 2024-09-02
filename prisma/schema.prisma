@@ -32,8 +32,8 @@ model Image {
   id            String         @id @default(cuid())
   userId        String?        @unique
   stationId     String?        @unique
-  url           String
-  cloudId       String
+  url           String?
+  public_id     String
   alt           String?
   user          User?          @relation(fields: [userId], references: [id])
   policeStation PoliceStation? @relation(fields: [stationId], references: [id])
@@ -58,13 +58,13 @@ model UserDocuments {
 
 model Address {
   id              String            @id @default(cuid())
-  userId          String            @unique
+  userId          String
   type            AddressType       @default(CurrentAddress)
   country         String            @default("India")
-  state           String
-  city            String
-  district        String
-  postalCode      String
+  state           String            @default("")
+  city            String            @default("")
+  district        String            @default("")
+  postalCode      String            @default("")
   street          String?
   landmark        String?
   houseNumber     String?
@@ -230,7 +230,6 @@ enum CaseType {
   WemenSafety
   SpecialInvestigation
 }
-
 
 enum CaseStatus {
   Pending

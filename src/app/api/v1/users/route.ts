@@ -20,7 +20,7 @@ export const GET = asyncHandler(async (req: NextRequest) => {
         include: {
             address: true,
             userDocuments: true,
-            Image: true
+            profilePhoto: true
         }
     })
 

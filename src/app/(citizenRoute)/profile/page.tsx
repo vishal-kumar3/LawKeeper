@@ -5,43 +5,43 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Container } from "@/components/Container";
 import { Input } from "@/components/ui/input";
-import { User } from "@prisma/client";
 import axios from "axios";
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import Loading from "@/components/loader";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { CldUploadButton, CldImage } from 'next-cloudinary';
+import { deleteImage } from "@/action/cloudinary.action";
+
 
 const formSchema = z.object({
     fullName: z.string().min(1),
     email: z.string(),
     phoneNumber: z.string(),
-    profilePhoto: z.string(),
     gender: z.enum(["Male", "Female"]),
     dateOfBirth: z.string(),
     address: z.array(z.object({
+        id: z.string(),
         country: z.string(),
         state: z.string(),
         city: z.string(),
-        postalCode: z.string(),
-        street: z.string(),
-        landmark: z.string(),
-        houseNumber: z.string(),
+        postalCode: z.string().regex(/^[0-9]*$/, { message: "Invalid Postal Code" }),
+        street: z.string().nullable(),
+        landmark: z.string().nullable(),
+        houseNumber: z.string().nullable(),
+        district: z.string().nullable()
     })),
     userDocuments: z.object({
-        voterIdNumber: z.string(),
-        voterIdPhoto: z.string(),
-        aadharCardNumber: z.string(),
-        aadharCardPhoto: z.string(),
-        panCardNumber: z.string(),
-        panCardPhoto: z.string(),
-        passportNumber: z.string(),
-        passportPhoto: z.string(),
-        drivingLicenceNumber: z.string(),
-        drivingLicencePhoto: z.string(),
+        voterIdNumber: z.string().regex(/(^[A-Z]{3}[0-9]{7}$)|^$/, { message: "Invalid Voter ID Number" }).nullable(),
+        aadharCardNumber: z.string().regex(/(^[2-9]{1}[0-9]{3}\\s[0-9]{4}\\s[0-9]{4}$)|^$/, { message: "Invalid Aadhar Card Number" }).nullable(),
+        panCardNumber: z.string().regex(/([A-Z]{5}[0-9]{4}[A-Z]{1})|^$/, { message: "Invalid Pan Card Number" }).nullable(),
+        passportNumber: z.string().regex(/(^[A-Z][1-9]\d\s?\d{4}[1-9]$)|^$/, { message: "Invalid Passport Number" }).nullable(),
+        drivingLicenceNumber: z.string().regex(/(^(([A-Z]{2}[0-9]{2})( )|([A-Z]{2}-[0-9]{2}))((19|20)[0-9][0-9])[0-9]{7}$)|^$/, { message: "Invalid Driving License Number" }).nullable(),
     })
 })
 
@@ -52,6 +52,39 @@ type InputFieldProps = {
     label: string,
     description?: string,
     options?: any
+}
+
+type MyImage = {
+    public_id: string
+}
+
+type DividerProps = {
+    label: string
+}
+
+type DocumentsPhotos = {
+    voterIdPhoto: MyImage | null,
+    aadharCardPhoto: MyImage | null,
+    panCardPhoto: MyImage | null,
+    passportPhoto: MyImage | null,
+    drivingLicencePhoto: MyImage | null,
+    profilePhoto: MyImage | null
+}
+
+enum Doc {
+    voterIdPhoto = "voterIdPhoto",
+    aadharCardPhoto = "aadharCardPhoto",
+    panCardPhoto = "panCardPhoto",
+    passportPhoto = "passportPhoto",
+    drivingLicencePhoto = "drivingLicencePhoto",
+    profilePhoto = "profilePhoto"
+}
+
+type PhotoFieldProps = {
+    image: MyImage | null,
+    onDocumentUpload: (data: any) => {},
+    label: string,
+    preset?: string
 }
 
 function InputField(props: InputFieldProps) {
@@ -78,10 +111,6 @@ function InputField(props: InputFieldProps) {
     )
 }
 
-type DividerProps = {
-    label: string
-}
-
 function Divider(props: DividerProps) {
     return (
         <div className="w-full flex items-center justify-start gap-2">
@@ -91,43 +120,68 @@ function Divider(props: DividerProps) {
     )
 }
 
-function createDefaultDocuments() {
-    return {
-        voterIdNumber: "",
-        voterIdPhoto: "",
-        aadharCardNumber: "",
-        aadharCardPhoto: "",
-        panCardNumber: "",
-        panCardPhoto: "",
-        passportNumber: "",
-        passportPhoto: "",
-        drivingLicenceNumber: "",
-        drivingLicencePhoto: ""
-    }
-}
-
-function createDefaultAddress() {
-    const address = {
-        country: '',
-        state: '',
-        city: '',
-        postalCode: '',
-        street: '',
-        landmark: '',
-        houseNumber: ''
-    }
-
-    return [address, address]
+function PhotoField(props: PhotoFieldProps) {
+    return (
+        <div className="w-full flex flex-col items-start justify-between">
+            <div className="ml-4 text-sm font-medium">{props.label}</div>
+            <div className="flex items-end pb-2 justify-start gap-4 text-sm w-full">
+                <div className="text-sm self-center text-gray-500">{props.image?.public_id && "Uploaded"}</div>
+                <CldUploadButton className="bg-primary text-primary-foreground w-[40%] py-2 rounded text-sm" uploadPreset={props.preset || "myPreset"} onSuccess={props.onDocumentUpload} />
+            </div>
+        </div>
+    )
 }
 
 export default function Profile() {
 
-    const [user, setUser] = useState<User>()
-    const [loader, setLoader] = useState(true)
 
-    const onSubmit = (data: z.infer<typeof formSchema>) => {
-        console.log("data is")
-        console.log(data)
+    const [loader, setLoader] = useState(true)
+    const [isSameAddress, setIsSameAddress] = useState(false)
+    const router = useRouter()
+    const { toast } = useToast()
+    const [imagesState, setImagesState] = useState<DocumentsPhotos>({
+        voterIdPhoto: null,
+        aadharCardPhoto: null,
+        panCardPhoto: null,
+        passportPhoto: null,
+        drivingLicencePhoto: null,
+        profilePhoto: null
+    })
+
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        try {
+
+            if (data.dateOfBirth !== "") {
+                data.dateOfBirth = new Date(data.dateOfBirth).toISOString()
+            }
+
+            let formData: any = {
+                ...data,
+                profilePhoto: imagesState.profilePhoto,
+                userDocuments: {
+                    ...data.userDocuments,
+                }
+            }
+
+            formData.userDocuments.voterIdPhoto = imagesState.voterIdPhoto?.public_id
+            formData.userDocuments.aadharCardPhoto = imagesState.aadharCardPhoto?.public_id
+            formData.userDocuments.panCardPhoto = imagesState.panCardPhoto?.public_id
+            formData.userDocuments.passportPhoto = imagesState.passportPhoto?.public_id
+            formData.userDocuments.drivingLicencePhoto = imagesState.drivingLicencePhoto?.public_id
+
+            console.log(formData)
+
+            const response = await axios.post("/api/v1/users/citizens", formData)
+            console.log(response)
+
+            router.push("/")
+
+            toast({
+                title: "Profile Updated Successfully"
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 
     const fetchUserData = async () => {
@@ -135,23 +189,20 @@ export default function Profile() {
             const { data } = await axios.get("/api/v1/users")
             const userData = data.data
 
-            if (userData.address.length === 0) {
-                userData.address = createDefaultAddress()
-            }
-
-            if (userData.userDocuments === null) {
-                userData.userDocuments = createDefaultDocuments()
-            }
-
-            Object.keys(userData).map(key => {
-                if (userData[key] === null || userData[key] === undefined) {
-                    userData[key] = ''
-                }
-            })
-
-
+            userData.dateOfBirth = userData.dateOfBirth?.slice(0, 10)
             console.log(userData)
-            setUser(userData)
+            if (userData.profilePhoto) {
+                setImagesState((prev) => ({
+                    ...prev,
+                    "profilePhoto": { public_id: userData.profilePhoto?.public_id },
+                    "aadharCardPhoto": { public_id: userData.userDocuments.aadharCardPhoto },
+                    "voterIdPhoto": { public_id: userData.userDocuments.voterIdPhoto },
+                    "panCardPhoto": { public_id: userData.userDocuments.panCardPhoto },
+                    "passportPhoto": { public_id: userData.userDocuments.passportPhoto },
+                    "drivingLicencePhoto": { public_id: userData.userDocuments.drivingLicencePhoto },
+                }))
+            }
+
             return userData
         } catch (err) {
             console.log(err)
@@ -162,9 +213,38 @@ export default function Profile() {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: async () => await fetchUserData()
+        defaultValues: async () => await fetchUserData(),
+        mode: "onChange"
     })
 
+    const handleSameAddress = () => {
+        if (!isSameAddress) {
+            const idOfFirst = form.getValues("address.1.id")
+            form.setValue("address.1", form.getValues("address.0"))
+            form.setValue("address.1.id", idOfFirst)
+        }
+        setIsSameAddress(!isSameAddress)
+    }
+
+    const onDocumentUpload = async (data: any, doc: Doc) => {
+
+        // Deleting previously uploaded file
+        if (imagesState?.[doc]) {
+            const response = await deleteImage(imagesState[doc].public_id)
+            console.log(response)
+            setImagesState((prev) => ({ ...prev, doc: { public_id: "" } }))
+        }
+
+        setImagesState((prev) => ({ ...prev, [doc]: { public_id: data.info.public_id } }))
+    }
+
+    useEffect(() => {
+        if (isSameAddress) {
+            const idOfFirst = form.getValues("address.1.id")
+            form.setValue("address.1", form.getValues("address.0"))
+            form.setValue("address.1.id", idOfFirst)
+        }
+    }, [form.formState, isSameAddress])
 
     return (
         !loader &&
@@ -232,94 +312,102 @@ export default function Profile() {
 
                         {/* TODO: Profile photo part */}
                         <div className=" flex-grow h-full flex flex-col items-center justify-center gap-4">
-                            <Image src={"/images/noProfile.png"} className="rounded-full object-cover" width={200} height={200} alt="" />
-                            <Button className="w-[40%]">Upload New Picture</Button>
-                            <Button variant={"destructive"} className="w-[40%]">Remove Picture</Button>
+                            <CldImage src={imagesState.profilePhoto?.public_id || "https://res.cloudinary.com/dn7tgdikq/image/upload/v1724999624/LawKeeper/ghb4flnfqwgk3fyd6zv2.png"} className="rounded-full object-cover w-[200px] h-[200px]" width={200} height={200} alt="" />
+
+                            <CldUploadButton className="bg-primary text-primary-foreground w-[40%] py-2 rounded text-sm" uploadPreset="myPreset" onSuccess={(results) => onDocumentUpload(results, Doc.profilePhoto)} />
+                            <Button type="button" variant={"destructive"} className="w-[40%]" onClick={() => setImagesState((prev) => ({...prev, "profilePhoto": {public_id: ""}}))}>Remove Picture</Button>
                         </div>
-                    </div>
-
-                    <Divider label="Permament Address" />
-
-                    <div className="grid grid-cols-2 gap-x-5">
-                        <InputField
-                            name="address[0].country"
-                            control={form.control}
-                            label="Country"
-                        />
-                        <InputField
-                            name="address[0].state"
-                            control={form.control}
-                            label="State"
-                        />
-                        <InputField
-                            name="address[0].city"
-                            control={form.control}
-                            label="City"
-                        />
-                        <InputField
-                            name="address[0].postalCode"
-                            control={form.control}
-                            label="Postal Code"
-                        />
-                        <InputField
-                            name="address[0].landmark"
-                            control={form.control}
-                            label="Landmark"
-                        />
-                        <InputField
-                            name="address[0].street"
-                            control={form.control}
-                            label="Street"
-                        />
-                        <InputField
-                            name="address[0].houseNumber"
-                            control={form.control}
-                            label="House Number"
-                        />
                     </div>
 
                     <Divider label="Current Address" />
 
-                    <div className="flex items-center justify-start gap-2">
-                        <Checkbox id="cb" />
-                        <Label htmlFor="cb" className="text-sm" >Same as Permanent Address</Label>
-                    </div>
-
                     <div className="grid grid-cols-2 gap-x-5">
                         <InputField
-                            name="address[1].country"
+                            name="address.0.country"
                             control={form.control}
                             label="Country"
                         />
                         <InputField
-                            name="address[1].state"
+                            name="address.0.state"
                             control={form.control}
                             label="State"
                         />
                         <InputField
-                            name="address[1].city"
+                            name="address.0.city"
                             control={form.control}
                             label="City"
                         />
                         <InputField
-                            name="address[1].postalCode"
+                            name="address.0.postalCode"
                             control={form.control}
                             label="Postal Code"
                         />
                         <InputField
-                            name="address[1].landmark"
+                            name="address.0.landmark"
                             control={form.control}
                             label="Landmark"
                         />
                         <InputField
-                            name="address[1].street"
+                            name="address.0.street"
                             control={form.control}
                             label="Street"
                         />
                         <InputField
-                            name="address[1].houseNumber"
+                            name="address.0.houseNumber"
                             control={form.control}
                             label="House Number"
+                        />
+                    </div>
+
+                    <Divider label="Permanent Address" />
+
+                    <div className="flex items-center justify-start gap-2">
+                        <Checkbox id="cb" onClick={handleSameAddress} />
+                        <Label htmlFor="cb" className="text-sm" >Same as Current Address</Label>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-5">
+                        <InputField
+                            name="address.1.country"
+                            control={form.control}
+                            label="Country"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.state"
+                            control={form.control}
+                            label="State"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.city"
+                            control={form.control}
+                            label="City"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.postalCode"
+                            control={form.control}
+                            label="Postal Code"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.landmark"
+                            control={form.control}
+                            label="Landmark"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.street"
+                            control={form.control}
+                            label="Street"
+                            options={{ disabled: isSameAddress }}
+                        />
+                        <InputField
+                            name="address.1.houseNumber"
+                            control={form.control}
+                            label="House Number"
+                            options={{ disabled: isSameAddress }}
                         />
                     </div>
 
@@ -331,59 +419,66 @@ export default function Profile() {
                             control={form.control}
                             label="Voter Id Number"
                         />
-                        <InputField
-                            name="userDocuments.voterIdPhoto"
-                            control={form.control}
-                            label="Voter Id Photo"
-                            options={{ type: "file", className: "w-fit" }}
+                        <PhotoField
+                            image={imagesState.voterIdPhoto}
+                            onDocumentUpload={(results) => onDocumentUpload(results, Doc.voterIdPhoto)}
+                            label="Voter ID Photo"
+                            preset="documentsPreset"
                         />
                         <InputField
                             name="userDocuments.aadharCardNumber"
                             control={form.control}
                             label="Aadhar Card Number"
+
                         />
-                        <InputField
-                            name="userDocuments.aadharCardPhoto"
-                            control={form.control}
+                        <PhotoField
+                            image={imagesState.aadharCardPhoto}
+                            onDocumentUpload={(results) => onDocumentUpload(results, Doc.aadharCardPhoto)}
                             label="Aadhar Card Photo"
-                            options={{ type: "file", className: "w-fit" }}
+                            preset="documentsPreset"
                         />
                         <InputField
                             name="userDocuments.panCardNumber"
                             control={form.control}
                             label="Pan Card Number"
                         />
-                        <InputField
-                            name="userDocuments.panCardPhoto"
-                            control={form.control}
+                        <PhotoField
+                            image={imagesState.panCardPhoto}
+                            onDocumentUpload={(results) => onDocumentUpload(results, Doc.panCardPhoto)}
                             label="Pan Card Photo"
-                            options={{ type: "file", className: "w-fit" }}
+                            preset="documentsPreset"
                         />
                         <InputField
                             name="userDocuments.passportNumber"
                             control={form.control}
                             label="Passport Number"
                         />
-                        <InputField
-                            name="userDocuments.passportPhoto"
-                            control={form.control}
+                        <PhotoField
+                            image={imagesState.passportPhoto}
+                            onDocumentUpload={(results) => onDocumentUpload(results, Doc.passportPhoto)}
                             label="Passport Photo"
-                            options={{ type: "file", className: "w-fit" }}
+                            preset="documentsPreset"
                         />
                         <InputField
                             name="userDocuments.drivingLicenceNumber"
                             control={form.control}
                             label="Driving License Number"
                         />
-                        <InputField
-                            name="userDocuments.drivingLicencePhoto"
-                            control={form.control}
+                        <PhotoField
+                            image={imagesState.drivingLicencePhoto}
+                            onDocumentUpload={(results) => onDocumentUpload(results, Doc.drivingLicencePhoto)}
                             label="Driving License Photo"
-                            options={{ type: "file", className: "w-fit" }}
+                            preset="documentsPreset"
                         />
                     </div>
 
-                    <Button type="submit">Update</Button>
+                    <Button className="w-32 h-10 text-sm font-semibold tracking-wide" disabled={!form.formState.isValid || form.formState.isSubmitting} type="submit">
+                        {
+                            form.formState.isSubmitting ?
+                                <Loading />
+                                : "Update"
+                        }
+                    </Button>
                 </form>
             </Form>
         </Container>
