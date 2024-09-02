@@ -24,8 +24,6 @@ import { getCity, getDistrict } from "@/action/address.acton"
 import { AddressWithPoliceStation, City, District, State } from "@/types/address.types"
 import { Input } from "@/components/ui/input"
 import { getPoliceStationWithAddress, getPoliceStationWithPincode } from "@/action/station.action"
-import { Station } from "@/types/station.types"
-
 
 
 export const AssignStationForm = ({ state }: { state: State[] }) => {
@@ -72,7 +70,7 @@ export const AssignStationForm = ({ state }: { state: State[] }) => {
 
 
 
-type SelectFieldProps<T> = {
+export type SelectFieldProps<T> = {
   data: T[]
   field: keyof T
   label: string

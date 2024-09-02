@@ -32,6 +32,7 @@ model User {
   detective        Detective?
   administrator    Administrator?
   userDocuments    UserDocuments?
+  board            Board?
 }
 
 model Image {
@@ -100,6 +101,18 @@ enum Gender {
   Female
 }
 
+model Board {
+  userId            String          @id @unique
+  user              User            @relation(fields: [userId], references: [id])
+  type              BoardType
+  recruitedOfficers PoliceOfficer[]
+}
+
+enum BoardType {
+  State
+  Central
+}
+
 model Citizen {
   userId                  String               @id @unique
   user                    User                 @relation(fields: [userId], references: [id])
@@ -114,6 +127,8 @@ model PoliceOfficer {
   badgeNumber       String?           @unique
   assignedCaseId    String?
   assignedStationId String?
+  recruiterId       String?
+  recruitedBy       Board?            @relation(fields: [recruiterId], references: [userId])
   rank              Rank?
   caseHistory       CaseHistory[]
   transferHistory   TransferHistory[]
@@ -124,7 +139,6 @@ model PoliceOfficer {
 }
 
 enum Rank {
-  Board
   Constable
   TrafficPolice
   ASI
@@ -219,7 +233,7 @@ model CaseAssignment {
   detectiveId String?
   caseType    CaseType
   caseStatus  CaseStatus      @default(Pending)
-  officer     PoliceOfficer[]
+  officer      PoliceOfficer[]
   detective   Detective?      @relation(fields: [detectiveId], references: [userId])
   assignedAt  DateTime        @default(now())
   CaseHistory CaseHistory[]
@@ -256,6 +270,7 @@ model CaseHistory {
 }
 
 enum Role {
+  Board
   Citizen
   PoliceOfficer
   Detective

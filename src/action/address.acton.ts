@@ -1,9 +1,10 @@
 "use server"
 
 import prisma from "@/prisma"
+import { City, District, Pincode, State } from "@/types/address.types"
 
 export const getState = async () => {
-  const state = await prisma.address.findMany({
+  const state: State[] = await prisma.address.findMany({
     distinct: ['state'],
     select: {
       state: true,
@@ -17,7 +18,7 @@ export const getState = async () => {
 }
 
 export const getCity = async (selectedState: string) => {
-  const city = await prisma.address.findMany({
+  const city: City[] = await prisma.address.findMany({
     where: {
       state: selectedState,
     },
@@ -34,7 +35,7 @@ export const getCity = async (selectedState: string) => {
 }
 
 export const getDistrict = async (selectedState: string, selectedCity: string) => {
-  const district = await prisma.address.findMany({
+  const district: District[] = await prisma.address.findMany({
     where: {
       state: selectedState,
       city: selectedCity,
@@ -51,3 +52,21 @@ export const getDistrict = async (selectedState: string, selectedCity: string) =
   return district
 }
 
+export const getPincode = async (selectedState: string, selectedCity: string, selectedDistrict: string) => {
+  const pincode: Pincode[] = await prisma.address.findMany({
+    where: {
+      state: selectedState,
+      city: selectedCity,
+      district: selectedDistrict,
+    },
+    distinct: ['postalCode'],
+    select: {
+      postalCode: true,
+    },
+  }).catch((error) => {
+    console.error(error)
+    return []
+  })
+
+  return pincode
+}

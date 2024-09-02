@@ -21,6 +21,12 @@ export type District = Prisma.AddressGetPayload<{
   }
 }>
 
+export type Pincode = Prisma.AddressGetPayload<{
+  select: {
+    postalCode: true
+  }
+}>
+
 export type AddressWithPoliceStation = Prisma.AddressGetPayload<{
   include: {
     policeStation: true
