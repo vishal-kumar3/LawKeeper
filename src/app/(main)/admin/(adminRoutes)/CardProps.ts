@@ -4,7 +4,7 @@ export const AppointOfficersCardProps: CardProps[] = [
   {
     title: "Authorize State Police Recruitment Board",
     description: "Board to recruit officers for State Level Police",
-    link: ""
+    link: "/appoint/state-board"
   },
   {
     title: "State Level Officers",
