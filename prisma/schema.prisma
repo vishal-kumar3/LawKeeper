@@ -39,8 +39,8 @@ model Image {
   id            String         @id @default(cuid())
   userId        String?        @unique
   stationId     String?        @unique
-  url           String
-  cloudId       String
+  url           String?
+  public_id     String
   alt           String?
   user          User?          @relation(fields: [userId], references: [id])
   policeStation PoliceStation? @relation(fields: [stationId], references: [id])

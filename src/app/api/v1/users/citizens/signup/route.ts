@@ -83,6 +83,25 @@ export const POST = asyncHandler(async (req: NextRequest) => {
     }
   })
 
+  const connectUserToPermanentAddress = await prisma.address.create({
+    data: {
+      userId: newUser.id,
+      type: "PermanentAddress"
+    }
+  })
+
+  const connectUserToCurrentAddress = await prisma.address.create({
+    data: {
+      userId: newUser.id
+    }
+  })
+
+  const connectUserToUserDocuments = await prisma.userDocuments.create({
+    data: {
+      userId: newUser.id
+    }
+  })
+
   newUser.password = ""
   const token = await signToken({
     id: newUser.id,
