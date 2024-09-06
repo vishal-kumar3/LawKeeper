@@ -60,26 +60,18 @@ export default function Signin() {
       router.push("/")
     } catch (err: any) {
       console.log(err)
-      if (err?.response.status === 500)
-        setError("Something went wrong! Please try again later")
-      else setError(err.message)
+      // if (err?.response.status === 500)
+      //   setError("Something went wrong! Please try again later")
+      // else setError(err.message)
+      setError(err.response.data.error)
     }
-    setError("Something went wrong! Please try again later")
+    // setError("Something went wrong! Please try again later")
   }
 
 
   return (
     <div className="min-h-screen flex md:flex-row flex-col items-center justify-center gap-[5vw] relative">
-      {
-        error &&
-        <Alert className=" absolute top-3 w-[40vw]" variant="destructive">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error}
-          </AlertDescription>
-        </Alert>
-      }
+
       <Emblem />
 
       <Card className="border-none shadow-none w-[90%] sm:w-[60%] md:w-[40%] lg:w-[30%] xl:w-[25%]">
@@ -135,6 +127,16 @@ export default function Signin() {
                   Show Password
                 </label>
               </div>
+              {
+                error &&
+                <Alert className="w-full" variant="destructive">
+                  <ExclamationTriangleIcon className="h-5 w-5" />
+                  <AlertTitle className="font-semibold">{error.title}</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    {error.description}
+                  </AlertDescription>
+                </Alert>
+              }
               <Button className="w-full" disabled={!form.formState.isValid || form.formState.isSubmitting} variant={"default"} type="submit">
                 {
                   form.formState.isSubmitting ?

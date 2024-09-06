@@ -5,8 +5,8 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState } from "react";
-import { getUser } from "@/action/citizen.action";
-import { UserPayload } from "@/auth";
+import { getCurrentUser, getUser } from "@/action/citizen.action";
+import { UserWithImage } from "@/types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname } from "next/navigation";
 
@@ -28,13 +28,13 @@ function HeaderElements({ elems }: any) {
 
 export function Header() {
 
-    const [user, setUser] = useState<UserPayload | null>(null)
+    const [user, setUser] = useState<UserWithImage | null | undefined>(null)
     const [loader, setLoader] = useState<boolean>(true)
 
     useEffect(() => {
         ; (async () => {
             try {
-                const response = await getUser()
+                const response = await getCurrentUser()
                 setUser(response)
             } catch (err) {
                 console.log(err)
@@ -88,12 +88,12 @@ export function Header() {
 
                 {
                     user ?
-                        <Avatar>
-                            <Link href="/profile">
-                                <AvatarImage src="https://github.com/shadcn.png" />
+                        <Link href="/profile">
+                            <Avatar>
+                                <AvatarImage src={user.profilePhoto?.url || "https://res.cloudinary.com/dn7tgdikq/image/upload/v1724999624/LawKeeper/ghb4flnfqwgk3fyd6zv2.png"} />
                                 <AvatarFallback>CN</AvatarFallback>
-                            </Link>
-                        </Avatar>
+                            </Avatar>
+                        </Link>
                         : <Button>
                             <Link href={"/auth/signin"}>
                                 Login

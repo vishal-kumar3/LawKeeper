@@ -17,7 +17,7 @@ export async function getUser() {
 
 export const getCurrentUser = async () => {
   try{
-    const session = await auth();
+    const session: UserPayload | null = await verifyAuth(cookies().get("accessToken")?.value!)
     if(!session) return null
 
     const currentUser: UserWithImage = await prisma.user.findUnique({
