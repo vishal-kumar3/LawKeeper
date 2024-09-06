@@ -5,10 +5,21 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState } from "react";
-import { getCurrentUser, getUser } from "@/action/citizen.action";
+import { getCurrentUser, getUser, logoutUser } from "@/action/citizen.action";
 import { UserWithImage } from "@/types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { CldImage } from "next-cloudinary";
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 type NavElems = {
     text: string,
@@ -30,11 +41,13 @@ export function Header() {
 
     const [user, setUser] = useState<UserWithImage | null | undefined>(null)
     const [loader, setLoader] = useState<boolean>(true)
+    // const router = useRouter()
 
     useEffect(() => {
         ; (async () => {
             try {
                 const response = await getCurrentUser()
+                console.log(response)
                 setUser(response)
             } catch (err) {
                 console.log(err)
@@ -67,6 +80,16 @@ export function Header() {
             ulElem.classList.replace("h-22", "h-0")
     }
 
+    const handleLogout = async () => {
+        try {
+            await logoutUser()
+        } catch (err) {
+            console.log(err)
+        } finally {
+            window.location.reload()
+        }
+    }
+
     return (
         !loader &&
         <header className="w-full h-[--header-height] fixed backdrop-blur-sm top-0 left-0 flex items-center justify-between px-6 border-b-[0px] border-gray-200 z-10 md:fixed animate-appear-up">
@@ -88,18 +111,30 @@ export function Header() {
 
                 {
                     user ?
-                        <Link href="/profile">
-                            <Avatar>
-                                <AvatarImage src={user.profilePhoto?.url || "https://res.cloudinary.com/dn7tgdikq/image/upload/v1724999624/LawKeeper/ghb4flnfqwgk3fyd6zv2.png"} />
-                                <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
-                        </Link>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild className=" cursor-pointer hover:border-[1px] border-gray-500 box-border">
+                                <Avatar>
+                                    <CldImage src={user.profilePhoto?.public_id || "https://res.cloudinary.com/dn7tgdikq/image/upload/v1724999624/LawKeeper/ghb4flnfqwgk3fyd6zv2.png"} width={40} height={40} alt="profile" />
+                                    <AvatarFallback>CN</AvatarFallback>
+                                </Avatar>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <Link href="/profile">
+                                    <DropdownMenuItem>
+                                        Profile
+                                    </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout}>Log Out</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         : <Button>
                             <Link href={"/auth/signin"}>
                                 Login
                             </Link>
                         </Button>
                 }
+
 
             </div>
             <HamburgerMenuIcon className="md:hidden size-10 ml-3" onClick={handleHamburger} />

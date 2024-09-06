@@ -27,14 +27,14 @@ const formSchema = z.object({
     dateOfBirth: z.string(),
     address: z.array(z.object({
         id: z.string(),
-        country: z.string(),
-        state: z.string(),
-        city: z.string(),
-        postalCode: z.string().regex(/^[0-9]*$/, { message: "Invalid Postal Code" }),
-        street: z.string().nullable(),
-        landmark: z.string().nullable(),
-        houseNumber: z.string().nullable(),
-        district: z.string().nullable()
+        country: z.string().optional(),
+        state: z.string().optional(),
+        city: z.string().optional(),
+        postalCode: z.string().regex(/^[0-9]*$/, { message: "Invalid Postal Code" }).optional(),
+        street: z.string().nullable().optional(),
+        landmark: z.string().nullable().optional(),
+        houseNumber: z.string().nullable().optional(),
+        district: z.string().nullable().optional()
     })),
     userDocuments: z.object({
         voterIdNumber: z.string().regex(/(^[A-Z]{3}[0-9]{7}$)|^$/, { message: "Invalid Voter ID Number" }).nullable(),
@@ -132,6 +132,9 @@ function PhotoField(props: PhotoFieldProps) {
     )
 }
 
+
+
+
 export default function Profile() {
 
 
@@ -149,6 +152,8 @@ export default function Profile() {
     })
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        console.log("aaya h")
+        console.log(data)
         try {
 
             if (data.dateOfBirth !== "") {
@@ -247,7 +252,7 @@ export default function Profile() {
     }, [form, isSameAddress])
 
     return (
-        !loader &&
+        !loader ?
         <Container>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-[70%] mx-auto py-10">
@@ -482,5 +487,6 @@ export default function Profile() {
                 </form>
             </Form>
         </Container>
+        : <Loading className="w-[100vw] h-[100vh] flex items-center justify-center" />
     )
 }

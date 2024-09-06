@@ -38,3 +38,13 @@ export const getCurrentUser = async () => {
     console.error(err)
   }
 }
+
+
+export const logoutUser = async () => {
+  try {
+    cookies().delete("accessToken")
+    return true
+  } catch (err) {
+    return err
+  }
+}

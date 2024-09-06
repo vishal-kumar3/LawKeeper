@@ -26,7 +26,7 @@ model User {
   profilePhoto     Image?
   policeOfficer    PoliceOfficer?
   userDocuments    UserDocuments?
-  Address          Address[]
+  address          Address[]
 }
 
 model Image {
@@ -35,6 +35,7 @@ model Image {
   stationId     String?        @unique
   url           String?
   alt           String?
+  public_id     String
   user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
   policeStation PoliceStation? @relation(fields: [stationId], references: [id], onDelete: Cascade)
 }
@@ -70,6 +71,7 @@ model Address {
   street          String?
   landmark        String?
   address         String?
+  houseNumber     String?
   policeStation   PoliceStation?
   TransferredFrom TransferHistory[] @relation("TransferredFrom")
   user            User? @relation(fields: [userId], references: [id], onDelete: Cascade)

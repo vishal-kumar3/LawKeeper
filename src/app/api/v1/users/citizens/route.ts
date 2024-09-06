@@ -76,20 +76,23 @@ export const POST = asyncHandler(async (req: NextRequest) => {
         data: address[1]
     })
 
-    await prisma.image.upsert({
-        where: {
-            userId: decodedToken.id
-        },
-        create: {
-            url: profilePhoto.url,
-            public_id: profilePhoto.public_id,
-            userId: decodedToken.id,
-        },
-        update: {
-            url: profilePhoto.url,
-            public_id: profilePhoto.public_id,
-        }
-    })
+
+    if (profilePhoto) {
+        await prisma.image.upsert({
+            where: {
+                userId: decodedToken.id
+            },
+            create: {
+                url: profilePhoto.url,
+                public_id: profilePhoto.public_id,
+                userId: decodedToken.id,
+            },
+            update: {
+                url: profilePhoto.url,
+                public_id: profilePhoto.public_id,
+            }
+        })
+    }
 
     // Updates user and it can throw RecordNotFound Exception
     await prisma.user.update({
