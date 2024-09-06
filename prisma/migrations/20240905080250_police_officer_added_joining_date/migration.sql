@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "PoliceOfficer" ADD COLUMN     "joiningDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

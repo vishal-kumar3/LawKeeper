@@ -2,48 +2,7 @@ import fs from 'fs';
 import csv from 'csv-parser';
 import prisma from '@/prisma';
 
-
-async function seedPoliceStations() {
-  const results: any[] = [];
-
-  fs.createReadStream('/home/vishal/Downloads/Police_Station_0_0.csv')
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', async () => {
-      for (const station of results) {
-        // convert to lower case
-        station.state = station.state.toLowerCase();
-        station.city = station.city.toLowerCase();
-        station.district = station.district.toLowerCase();
-        station.address = station.address.toLowerCase();
-        station.stationName = station.stationName.toLowerCase();
-        station.stationPhone = station.stationPhone.replace(/\D/g, '');
-        if (station.stationPhone.startsWith('0')) {
-          station.stationPhone = station.stationPhone.slice(1);
-        }
-
-        const addressWithStation = await prisma.address.create({
-          data: {
-            zone: "East",
-            state: station.state,
-            city: station.city,
-            district: station.district,
-            postalCode: station.postalCode,
-            address: station.address,
-            policeStation: {
-              create: {
-                stationName: station.stationName,
-                stationPhone: station.stationPhone,
-              },
-          },
-        }});
-        console.log(addressWithStation);
-      }
-
-      console.log('Police stations seeded successfully!');
-    });
-}
-
+// Extract address info from the string
 interface AddressInfo {
   village: string;
   post_office: string;
@@ -74,10 +33,33 @@ function extractAddressInfo(address: string): AddressInfo | null {
   return null;
 }
 
+
+// Update data and flag mismatches
+function updateData(
+  addressList: string[],
+  districtList: string[]
+): (AddressInfo | null | { mismatch: boolean })[] {
+  const updatedData: (AddressInfo | null | { mismatch: boolean })[] = [];
+
+  addressList.forEach((address, index) => {
+    const district = districtList[index];
+    const addressInfo = extractAddressInfo(address);
+
+    if (addressInfo && addressInfo.district.toLowerCase() === district.toLowerCase()) {
+      updatedData.push(addressInfo);
+    } else {
+      // Flag for manual review if there's a mismatch
+      updatedData.push({ mismatch: true });
+    }
+  });
+
+  return updatedData;
+}
+
 async function seedPoliceOfficers() {
   const results: any[] = [];
 
-  fs.createReadStream('/home/vishal/Downloads/ Police_Officers.csv')
+  fs.createReadStream('/home/vishal/Downloads/Police_Officers.csv')
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -118,7 +100,7 @@ async function seedPoliceOfficers() {
               fullName: officer.fullName,
               email: officer['EMAIL ID'] ? officer['EMAIL ID'].toLowerCase() : officer.fullName.toLowerCase().replace(/\s/g, '_') + '@example.com',
               phoneNumber: officer['PHONE NO'].replace(/\D/g, ''),
-              dateOfBirth: new Date('02-02-1998'),
+              dateOfBirth: new Date(officer['DATE OF BIRTH']),
               gender: 'Male',
               role: 'PoliceOfficer',
               password: '1234567890',
@@ -126,7 +108,7 @@ async function seedPoliceOfficers() {
                 create: {
                   badgeNumber: officer['BATCH NO'],
                   rank: 'Inspector', // Example rank, adjust as needed
-                  joiningDate: new Date('02-02-2024'),
+                  joiningDate: new Date(officer['DATE OF APPOINT MENT']),
                 },
               },
               address: {
@@ -188,16 +170,6 @@ async function seedPoliceOfficers() {
     });
 }
 
-async function main() {
-  await seedPoliceStations();
-  // await seedPoliceOfficers();
-}
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+seedPoliceOfficers().catch((e) => {
+  console.error(e);
+});
