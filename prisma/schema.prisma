@@ -42,8 +42,8 @@ model Image {
   url           String?
   public_id     String
   alt           String?
-  user          User?          @relation(fields: [userId], references: [id])
-  policeStation PoliceStation? @relation(fields: [stationId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policeStation PoliceStation? @relation(fields: [stationId], references: [id], onDelete: Cascade)
 }
 
 model UserDocuments {
@@ -61,18 +61,19 @@ model UserDocuments {
   drivingLicencePhoto  String?
 
   isVerified Boolean @default(false)
-  user       User    @relation(fields: [userId], references: [id])
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Address {
   id              String            @id @default(cuid())
+  userId          String?
   type            AddressType?
   country         String            @default("India")
   zone            Zone?
-  state           String
-  city            String
-  district        String
-  postalCode      String
+  state           String  @default("")
+  city            String  @default("")
+  district        String  @default("")
+  postalCode      String  @default("")
   street          String?
   landmark        String?
   address         String?
@@ -80,7 +81,7 @@ model Address {
   policeStation   PoliceStation?
   TransferredTo   TransferHistory[] @relation("TransferredTo")
   TransferredFrom TransferHistory[] @relation("TransferredFrom")
-  user            User[]
+  user            User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Zone {
@@ -103,7 +104,7 @@ enum Gender {
 
 model Board {
   userId            String          @id @unique
-  user              User            @relation(fields: [userId], references: [id])
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   type              BoardType
   recruitedOfficers PoliceOfficer[]
 }
@@ -115,7 +116,7 @@ enum BoardType {
 
 model Citizen {
   userId                  String               @id @unique
-  user                    User                 @relation(fields: [userId], references: [id])
+  user                    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   licenseApplications     LicenseApplication[]
   complaints              Complaint[]
   notificationPreferences String?
@@ -123,11 +124,12 @@ model Citizen {
 
 model PoliceOfficer {
   userId            String            @id @unique
-  user              User              @relation(fields: [userId], references: [id])
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   badgeNumber       String?           @unique
   assignedCaseId    String?
   assignedStationId String?
   recruiterId       String?
+  joiningDate       DateTime          @default(now())
   recruitedBy       Board?            @relation(fields: [recruiterId], references: [userId])
   rank              Rank?
   caseHistory       CaseHistory[]
@@ -163,7 +165,7 @@ enum Department {
 
 model Detective {
   userId            String           @id @unique
-  user              User             @relation(fields: [userId], references: [id])
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   investigationArea Address[]
   activeCases       CaseAssignment[]
   specialization    String?
@@ -189,7 +191,7 @@ enum CaseType {
 
 model Administrator {
   userId String @id @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PoliceStation {
@@ -242,14 +244,13 @@ model CaseAssignment {
 enum CaseStatus {
   Pending
   Open
-  InProgress
   Closed
 }
 
 model TransferHistory {
   id            String        @id @default(cuid())
   officerId     String
-  officer       PoliceOfficer @relation(fields: [officerId], references: [userId])
+  officer       PoliceOfficer @relation(fields: [officerId], references: [userId], onDelete: Cascade)
   fromStationId String
   toStationId   String
   toStation     Address       @relation("TransferredTo", fields: [toStationId], references: [id])

@@ -244,7 +244,7 @@ export default function Profile() {
             form.setValue("address.1", form.getValues("address.0"))
             form.setValue("address.1.id", idOfFirst)
         }
-    }, [form.formState, isSameAddress])
+    }, [form, isSameAddress])
 
     return (
         !loader &&
