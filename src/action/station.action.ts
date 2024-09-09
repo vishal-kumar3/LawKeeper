@@ -37,3 +37,32 @@ export const getPoliceStationWithPincode = async (postalCode: string) => {
   console.log(policeStation)
   return policeStation
 }
+
+
+export const getStationByStationId = async (stationid: string) => {
+  try {
+    const station = await prisma.policeStation.findFirst({
+      where: {
+        id: stationid
+      },
+      include: {
+        location: true,
+        officers: {
+          include: {
+            user: true
+          }
+        },
+        stationImage: true,
+        SHO: {
+          include: {
+            user: true
+          }
+        }
+      }
+    })
+    return station
+  } catch (err) {
+    console.log(err)
+    return null
+  }
+} 

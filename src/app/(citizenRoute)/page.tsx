@@ -27,6 +27,9 @@ import { CheckIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import React, { useState } from "react"
 import { CardBuilder } from "@/components/CardBuilder"
+import { findNearestPoliceStation } from "@/action/citizen.action"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 const frameworks = [
   { label: "English", value: "en" },
@@ -118,7 +121,36 @@ function SearchByArea() {
   )
 }
 
+
+
 const Page = (props: props) => {
+
+  const router = useRouter()
+  const { toast } = useToast()
+  const [pincode, setPincode] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const findNearestStation = async (pincode: string) => {
+    try {
+      if(!pincode.match(new RegExp("^[1-9][0-9]{5}$"))) return toast({
+        title: "Invalid PinCode",
+        description: "Please Enter The Correct Pincode To Get The Details.",
+        variant: "destructive"
+      })
+      setLoading(true)
+      const station = await findNearestPoliceStation(pincode)
+      if (station) router.push(`/policeStation?stationId=${station.id}`)
+      else toast({
+        title: "No Nearest Police Station Found",
+        description: "You can get the information of it as soon as tehy register to us"
+      })
+    } catch (err) {
+      console.log(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   return (
     <Container className="flex relative flex-col items-center justify-start gap-20 h-auto scroll-smooth">
@@ -151,11 +183,11 @@ const Page = (props: props) => {
           content={
             <>
               <label htmlFor="inp">Enter your postalcode</label>
-              <Input placeholder="For Ex. 700017" />
+              <Input placeholder="For Ex. 700017" value={pincode} onChange={(e) => setPincode(e.target.value)} />
             </>
           }
           footer={
-            <Button>Search</Button>
+            <Button onClick={() => findNearestStation(pincode)} disabled={loading}>Search</Button>
           }
         />
 

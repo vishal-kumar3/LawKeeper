@@ -8,3 +8,21 @@ export type UserWithImage = Prisma.UserGetPayload<{
     profilePhoto: true
   }
 }> | null
+
+
+export type PoliceStationFull = Prisma.PoliceStationGetPayload<{
+  include: {
+    location: true,
+    officers: {
+      include: {
+        user: true
+      }
+    },
+    SHO: {
+      include: {
+        user: true
+      }
+    },
+    stationImage: true
+  }
+}> | null
