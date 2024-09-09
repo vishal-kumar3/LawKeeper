@@ -18,20 +18,24 @@ const PictureAndForm = ({form, formItems}: props) => {
         <CardContent className="w-full px-0 sm:px-6 flex-1 order-2 space-y-6">
           {
             formItems.map((field: FormItemType) => (
-              <FormField
-                key={field.name}
-                control={form.control}
-                name={field.name}
-                render={({ field: formField }) => (
-                  <FormItem>
-                    <FormLabel>{field.label}</FormLabel>
-                    <FormControl>
-                      <Input type={field.type} placeholder={field.placeholder} {...formField} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+              
+
+
+              // <FormField
+              //   key={field.name}
+              //   control={form.control}
+              //   name={field.name}
+              //   render={({ field: formField }) => (
+              //     <FormItem>
+              //       <FormLabel>{field.label}</FormLabel>
+              //       <FormControl>
+              //         <Input type={field.type} placeholder={field.placeholder} {...formField} />
+              //       </FormControl>
+              //       <FormMessage />
+              //     </FormItem>
+              //   )}
+              // />
             ))
           }
           <FormField

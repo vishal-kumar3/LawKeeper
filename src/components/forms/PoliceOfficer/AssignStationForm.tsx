@@ -24,6 +24,8 @@ import { getCity, getDistrict } from "@/action/address.acton"
 import { AddressWithPoliceStation, City, District, State } from "@/types/address.types"
 import { Input } from "@/components/ui/input"
 import { getPoliceStationWithAddress, getPoliceStationWithPincode } from "@/action/station.action"
+import { FormItemType } from "../AppointBoard"
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 
 
 export const AssignStationForm = ({ state }: { state: State[] }) => {
@@ -71,11 +73,13 @@ export const AssignStationForm = ({ state }: { state: State[] }) => {
 
 
 export type SelectFieldProps<T> = {
-  data: T[]
+  data: string[]
   field: keyof T
   label: string
+  formItem?: FormItemType
+  formControl?: any
   reset: boolean
-  onSelect: (value: T[keyof T] | "") => void
+  onSelect: (value: T[keyof T] | string) => void
 }
 
 export const SelectField = <T extends object>({
@@ -83,10 +87,13 @@ export const SelectField = <T extends object>({
   field,
   label,
   reset,
+  formItem,
+  formControl,
   onSelect,
 }: SelectFieldProps<T>) => {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState<T[keyof T] | "">("")
+  const [value, setValue] = React.useState("")
+  const [inputText, setInputText] = React.useState("")
 
   React.useEffect(() => {
     if (reset) {
@@ -101,6 +108,31 @@ export const SelectField = <T extends object>({
       <PopoverTrigger asChild>
         <div className="flex w-full gap-5 items-center">
           <Label className="w-[50px]">{label}</Label>
+          {
+            formItem && formControl && (
+                <FormItem>
+                  <FormControl>
+                    <FormField
+                    control={formControl}
+                    name={formItem?.name}
+                    render={({ field }) => (
+                      <Input
+                          {...field}
+                          type={formItem.type}
+                        value={value}
+                          onChange={(e) => {
+                            setInputText(e.target.value)
+                          }}
+                          placeholder={`Select ${label}...`}
+                          className="flex-1 min-w-[200px]"
+                        />
+                      )}
+                    />
+                  </FormControl>
+                <FormMessage />
+                </FormItem>
+            )
+          }
           <Button
             variant="outline"
             role="combobox"
@@ -124,7 +156,7 @@ export const SelectField = <T extends object>({
                   value={String(item[field])}
                   onSelect={(currentValue) => {
                     const selectedValue = currentValue === value ? "" : item[field]
-                    setValue(selectedValue)
+                    setValue(selectedValue as string)
                     onSelect(selectedValue)
                     setOpen(false)
                   }}

@@ -29,8 +29,7 @@ const PoliceStationForm = z.object({
     district: z.string(),
     city: z.string(),
     state: z.string(),
-    country: z.string(),
-    pincode: z.string().regex(new RegExp("^[0-9]{7}$"), { message: "Invalid Pincode" }),
+    pincode: z.string()
   }),
   profilePhoto: z.string().url({ message: "Invalid URL" }),
   role: z.string(),
@@ -100,12 +99,6 @@ export const PoliceStationAddress: FormItemType[] = [
     type: "text",
   },
   {
-    name: "address.country" as "address.country",
-    label: "Country",
-    placeholder: "Enter Country...",
-    type: "text",
-  },
-  {
     name: "address.pincode" as "address.pincode",
     label: "Pincode",
     placeholder: "Enter Pincode...",
@@ -114,7 +107,7 @@ export const PoliceStationAddress: FormItemType[] = [
 ]
 
 type props = {
-  state: State[]
+  state: string[]
 }
 
 // TODO: Add search for police officer
@@ -124,19 +117,19 @@ export const AppointBoard = ({ state }: props) => {
   const form = useForm<z.infer<typeof PoliceStationForm>>({
     resolver: zodResolver(PoliceStationForm),
     defaultValues: {
-      fullName: "",
+      fullName: "vishal",
+      dateOfBirth: "2021-09-09",
       address: {
         district: "",
         city: "",
         state: "",
-        country: "",
         pincode: "",
       },
-      profilePhoto: "",
+      profilePhoto: "http://www.google.com",
       role: "Board",
-      gender: "",
-      email: "",
-      phoneNumber: "",
+      gender: "Male",
+      email: "email@gmail.cpm",
+      phoneNumber: "7894565321",
     },
     mode: "onChange"
   })
@@ -178,12 +171,12 @@ export const AppointBoard = ({ state }: props) => {
               </CardContent>
             </div>
           </div> */}
+          <AddAddressForm form={form} formItem={PoliceStationAddress} className="border-none shadow-none" state={state} />
           <div className="flex justify-center">
             <Button className="w-full sm:w-[50%] lg:w-[30%]" type="submit">Add Officer</Button>
           </div>
         </form>
       </Form>
-      <AddAddressForm state={state} />
     </>
   )
 }

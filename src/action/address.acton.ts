@@ -3,7 +3,7 @@
 import prisma from "@/prisma"
 import { City, District, Pincode, State } from "@/types/address.types"
 
-export const getState = async () => {
+export const getState = async (mode?: boolean) => {
   const state: State[] = await prisma.address.findMany({
     distinct: ['state'],
     select: {
@@ -14,10 +14,10 @@ export const getState = async () => {
     return []
   })
 
-  return state
+  return state.map(s => s.state)
 }
 
-export const getCity = async (selectedState: string) => {
+export const getCity = async (selectedState: string, mode?: boolean) => {
   const city: City[] = await prisma.address.findMany({
     where: {
       state: selectedState,
@@ -31,10 +31,11 @@ export const getCity = async (selectedState: string) => {
     return []
   })
 
-  return city
+
+  return city.map(s => s.city)
 }
 
-export const getDistrict = async (selectedState: string, selectedCity: string) => {
+export const getDistrict = async (selectedState: string, selectedCity: string, mode?: boolean) => {
   const district: District[] = await prisma.address.findMany({
     where: {
       state: selectedState,
@@ -49,10 +50,10 @@ export const getDistrict = async (selectedState: string, selectedCity: string) =
     return []
   })
 
-  return district
+  return district.map(s => s.district)
 }
 
-export const getPincode = async (selectedState: string, selectedCity: string, selectedDistrict: string) => {
+export const getPincode = async (selectedState: string, selectedCity: string, selectedDistrict: string, mode?: boolean) => {
   const pincode: Pincode[] = await prisma.address.findMany({
     where: {
       state: selectedState,
@@ -68,5 +69,5 @@ export const getPincode = async (selectedState: string, selectedCity: string, se
     return []
   })
 
-  return pincode
+  return pincode.map(s => s.postalCode)
 }
