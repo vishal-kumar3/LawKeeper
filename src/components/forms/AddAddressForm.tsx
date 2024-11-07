@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { City, District, Pincode, State } from "@/types/address.types"
 import { SelectField } from "./PoliceOfficer/AssignStationForm"
 import { useEffect, useState } from "react"
-import { getCity, getDistrict, getPincode } from "@/action/address.acton"
+import { getCity, getDistrict, getPincode } from "@/action/address.action"
 import { cn } from "@/lib/utils"
 import { FormItemType } from "./AppointBoard"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
@@ -15,7 +15,7 @@ import { Button } from "../ui/button"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 
-export function AddAddressForm({ state, className, formItem, form }: { state: string[], className?: string, formItem?: FormItemType[], form:any}) {
+export function AddAddressForm({ state, className, formItem, form }: { state: string[], className?: string, formItem?: FormItemType[], form: any }) {
   const [selectedState, setSelectedState] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState("")
@@ -148,7 +148,7 @@ export type selectAddressProps = {
   formItem?: FormItemType
   formControl?: any
   reset: boolean
-  onSelect: (value:  any) => void
+  onSelect: (value: any) => void
 }
 
 export const SelectAddress = ({

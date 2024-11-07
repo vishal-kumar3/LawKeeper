@@ -19,7 +19,7 @@ const PictureAndForm = ({form, formItems}: props) => {
           {
             formItems.map((field: FormItemType) => (
 
-              
+
 
 
               // <FormField

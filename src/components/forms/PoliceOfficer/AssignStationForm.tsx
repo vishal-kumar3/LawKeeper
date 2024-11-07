@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getCity, getDistrict } from "@/action/address.acton"
+import { getCity, getDistrict } from "@/action/address.action"
 import { AddressWithPoliceStation, City, District, State } from "@/types/address.types"
 import { Input } from "@/components/ui/input"
 import { getPoliceStationWithAddress, getPoliceStationWithPincode } from "@/action/station.action"
@@ -40,7 +40,7 @@ export const AssignStationForm = ({ state }: { state: State[] }) => {
             { label: "Station Head", value: station.policeStation?.SHOId || "not assigned yet" },
             { label: "Station Mail", value: station.policeStation?.stationMail || "not assigned yet" },
             { label: "Station Phone", value: station.policeStation?.stationPhone || "not assigned yet" },
-            { label: "Department", value: "Add krna h"}
+            { label: "Department", value: "Add krna h" }
           ];
 
           return (
@@ -110,27 +110,27 @@ export const SelectField = <T extends object>({
           <Label className="w-[50px]">{label}</Label>
           {
             formItem && formControl && (
-                <FormItem>
-                  <FormControl>
-                    <FormField
+              <FormItem>
+                <FormControl>
+                  <FormField
                     control={formControl}
                     name={formItem?.name}
                     render={({ field }) => (
                       <Input
-                          {...field}
-                          type={formItem.type}
+                        {...field}
+                        type={formItem.type}
                         value={value}
-                          onChange={(e) => {
-                            setInputText(e.target.value)
-                          }}
-                          placeholder={`Select ${label}...`}
-                          className="flex-1 min-w-[200px]"
-                        />
-                      )}
-                    />
-                  </FormControl>
+                        onChange={(e) => {
+                          setInputText(e.target.value)
+                        }}
+                        placeholder={`Select ${label}...`}
+                        className="flex-1 min-w-[200px]"
+                      />
+                    )}
+                  />
+                </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )
           }
           <Button
@@ -226,7 +226,7 @@ export function SelectStationForm({ state, setStation }: { state: State[], setSt
   }, [selectedCity])
 
   React.useEffect(() => {
-    async function searchStation(){
+    async function searchStation() {
       const PoliceStation = await getPoliceStationWithAddress(selectedState, selectedCity, selectedDistrict)
       console.log(PoliceStation)
       setStation(PoliceStation)
@@ -234,7 +234,7 @@ export function SelectStationForm({ state, setStation }: { state: State[], setSt
 
     if (selectedDistrict === "") {
       setResetDistrict(true)
-      return ;
+      return;
     }
 
     searchStation()
@@ -242,7 +242,7 @@ export function SelectStationForm({ state, setStation }: { state: State[], setSt
   }, [selectedDistrict])
 
   const stationUsingPincode = async () => {
-    if(pincode.length != 6) return ;
+    if (pincode.length != 6) return;
     const PoliceStation = await getPoliceStationWithPincode(pincode)
     setResetAll(true)
     setStation(PoliceStation)
